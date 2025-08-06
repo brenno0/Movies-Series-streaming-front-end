@@ -12,7 +12,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   component: () => (
     <>
       <div className='flex justify-center items-center w-full my-5' >
-          <p className='absolute text-4xl text-teal-600 font-bold  left-20 ' >NBFLIX</p>
+          <p className='absolute text-4xl text-primary font-bold  left-20 ' >NBFLIX</p>
         <NavigationMenuComponent items={TopNavItems} />
       </div>
       <Outlet />

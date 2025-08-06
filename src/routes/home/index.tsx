@@ -72,11 +72,11 @@ function HomeComponent() {
 
       <CarouselComponent delayInMilliseconds={5000} type='full' isRecommendationPanel={true} items={recommendedMovies || []}  />
           
-      <p className='text-2xl font-bold text-left ml-5 mt-10 text-teal-500' >Filmes Populares</p>
+      <p className='text-2xl font-bold text-left ml-5 mt-10 text-white' >Filmes Populares</p>
       <CarouselComponent items={movies || []}  />
 
       <div className='flex flex-wrap items-center gap-4  w-full mb-10' >
-        <p className='text-2xl font-bold text-left ml-5 mt-10 text-teal-500' >Séries Populares</p>
+        <p className='text-2xl font-bold text-left ml-5 mt-10 text-white' >Séries Populares</p>
         <CarouselComponent items={series || []}  />
       </div>
      

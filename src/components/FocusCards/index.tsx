@@ -51,17 +51,17 @@ export const Card = React.memo(
        {isRecommendationPanel && (
         <div className="relative h-full top-20 left-10" >
           <p className="font-bold text-4xl md:text-6xl" >{card.title}</p> 
-          <p className="mt-10 text-teal-100 w-100 " >{card.overview}</p>
+          <p className="mt-10 text-blue-100 w-100 " >{card.overview}</p>
 
-          <Button variant="default" size='lg' className="h-12 w-70 mt-10 bg-teal-600 text-white hover:bg-teal-800 cursor-pointer" ><PlayCircle />Assistir</Button>
+          <Button variant="default" size='lg' className="h-12 w-70 mt-10 bg-primary text-white hover:bg-blue-800 cursor-pointer" ><PlayCircle />Assistir</Button>
           <Button variant="outline" size='lg' className="ml-10 h-12 w-70 mt-10 font-bold text-white  bg-transparent border-white hover:border-white/70 hover:text-white/70 hover:bg-transparent cursor-pointer" ><Bookmark />Adicionar a Lista</Button>
         </div>
        )}
         <div className="w-full flex items-center mt-2 gap-1">
-          <Star className="fill-current size-5 text-yellow-500" />
+          <Star className="fill-current size-5 text-primary" />
           <p className="font-bold" >{card.vote_average.toFixed(2)}</p>
-          <div className="border-0.5 ml-1 border-l border-teal-600 h-5" ></div>
-          <p className="text-teal-300 font-bold" >{card.category === "movie" ? "Filme" : "Série"}</p>
+          <div className="border-0.5 ml-1 border-l border-primary h-5" ></div>
+          <p className="text-blue-300 font-bold" >{card.category === "movie" ? "Filme" : "Série"}</p>
 
         </div>
       </div>
