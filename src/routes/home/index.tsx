@@ -24,6 +24,7 @@ interface MoviesListResponseDTO {
 
 function HomeComponent() {
 
+  
   const options = {
     method: 'GET',
     headers: {
@@ -39,9 +40,12 @@ function HomeComponent() {
     return {
       title: series.title,
       image: `https://image.tmdb.org/t/p/w500/${series.poster_path}`,
+      backdropImage: `https://image.tmdb.org/t/p/original/${series.backdrop_path}`,
       vote_average: series.vote_average,
       category:'series' as const,
       overview:series.overview,
+      genre_ids:series.genre_ids,
+      id:series.id,
     }
   })
 
@@ -51,9 +55,12 @@ function HomeComponent() {
     return {
       title: recommendedMovie.name,
       image: `https://image.tmdb.org/t/p/original/${recommendedMovie.backdrop_path}`,
+      backdropImage: `https://image.tmdb.org/t/p/original/${recommendedMovie.backdrop_path}`,
       vote_average: recommendedMovie.vote_average,
       category:'movie' as const,
       overview:recommendedMovie.overview,
+      genre_ids:recommendedMovie.genre_ids,
+      id:recommendedMovie.id,
     }
   })
   
@@ -61,9 +68,12 @@ function HomeComponent() {
     return {
       title: movie.title,
       image: `https://image.tmdb.org/t/p/w500/${movie.poster_path}`,
+      backdropImage: `https://image.tmdb.org/t/p/original/${movie.backdrop_path}`,
       vote_average: movie.vote_average,
       category:'movie' as const,
       overview:movie.overview,
+      genre_ids:movie.genre_ids,
+      id:movie.id,
     }
   })
   

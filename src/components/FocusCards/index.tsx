@@ -20,8 +20,10 @@ export const Card = React.memo(
     type?:'full' | 'six-per-row'
     setHovered: React.Dispatch<React.SetStateAction<number | null>>;
     isRecommendationPanel?:boolean
-  }) => (
-    <div
+  }) => {
+    
+    return (
+      <div
       onMouseEnter={() => setHovered(index)}
       onMouseLeave={() => setHovered(null)}
       className={cn(
@@ -42,32 +44,32 @@ export const Card = React.memo(
           isRecommendationPanel && "opacity-100",
         )}
       >
-       {!isRecommendationPanel && (
-          <div className="text-xl md:text-2xl font-bold">
-            {card.title}
+        {isRecommendationPanel && (
+          <div className="relative h-full top-20 left-10" >
+            <p className="font-bold text-4xl md:text-6xl" >{card.title}</p> 
+            <p className="mt-10 text-blue-100 w-100 " >{card.overview}</p>
+
+            <Button variant="default" size='lg' className="h-12 w-70 mt-10 bg-primary text-white hover:bg-blue-800 cursor-pointer" ><PlayCircle />Assistir</Button>
+            <Button variant="outline" size='lg' className="ml-10 h-12 w-70 mt-10 font-bold text-white  bg-transparent border-white hover:border-white/70 hover:text-white/70 hover:bg-transparent cursor-pointer" ><Bookmark />Adicionar a Lista</Button>
           </div>
-       )} 
+        )}
+          {!isRecommendationPanel && (
+              <div className="text-xl text-white md:text-2xl font-bold">
+                {card.title}
+              </div>
+          )} 
+          <div className="w-full flex items-center mt-2 gap-1">
+            <Star className="fill-current size-5 text-primary" />
+            <p className="font-bold text-white" >{card.vote_average.toFixed(2)}</p>
+            <div className="border-0.5 ml-1 border-l border-primary h-5" ></div>
+            <p className="text-blue-300 font-bold" >{card.category === "movie" ? "Filme" : "Série"}</p>
+          </div>
 
-       {isRecommendationPanel && (
-        <div className="relative h-full top-20 left-10" >
-          <p className="font-bold text-4xl md:text-6xl" >{card.title}</p> 
-          <p className="mt-10 text-blue-100 w-100 " >{card.overview}</p>
-
-          <Button variant="default" size='lg' className="h-12 w-70 mt-10 bg-primary text-white hover:bg-blue-800 cursor-pointer" ><PlayCircle />Assistir</Button>
-          <Button variant="outline" size='lg' className="ml-10 h-12 w-70 mt-10 font-bold text-white  bg-transparent border-white hover:border-white/70 hover:text-white/70 hover:bg-transparent cursor-pointer" ><Bookmark />Adicionar a Lista</Button>
-        </div>
-       )}
-        <div className="w-full flex items-center mt-2 gap-1">
-          <Star className="fill-current size-5 text-primary" />
-          <p className="font-bold" >{card.vote_average.toFixed(2)}</p>
-          <div className="border-0.5 ml-1 border-l border-primary h-5" ></div>
-          <p className="text-blue-300 font-bold" >{card.category === "movie" ? "Filme" : "Série"}</p>
-
-        </div>
       </div>
     </div>
+    )
+  }
   )
-);
 
 Card.displayName = "Card";
 
