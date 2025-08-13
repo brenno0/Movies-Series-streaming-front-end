@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import type {
   IGetSeriesByIdDTO,
   IMDBResponseDTO,
@@ -92,7 +93,7 @@ export const useGetSeriesEpisodesBySeason = <
     queryKey: ['seriesEpisodes', seriesId, seasonNumber],
     queryFn: async ({ queryKey: [_, seriesId, seasonNumber] }) => {
       const res = await fetch(
-        `https://api.themoviedb.org/3/tv/${seriesId}/season/${seasonNumber}?api_key=YOUR_API_KEY&language=pt-BR`,
+        `https://api.themoviedb.org/3/tv/${seriesId}/season/${seasonNumber}?api_key=d175a4ba78a40605ed9c8b5bb88bc889&language=pt-BR`,
         options,
       )
       return res.json()

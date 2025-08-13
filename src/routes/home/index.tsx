@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useGetMovies } from '@/api/movies'
 import { useGetSeries } from '@/api/series'
 import { CarouselComponent } from '@/components/Carousel'
@@ -35,7 +36,7 @@ function HomeComponent() {
       backdropImage: `https://image.tmdb.org/t/p/original/${series.backdrop_path}`,
       vote_average: series.vote_average,
       category: 'series' as const,
-      overview: series.overview,
+      overview: series.overview ?? '',
       genre_ids: series.genre_ids,
       id: series.id,
     }
@@ -48,7 +49,7 @@ function HomeComponent() {
       backdropImage: `https://image.tmdb.org/t/p/original/${movie.backdrop_path}`,
       vote_average: movie.vote_average,
       category: 'movie' as const,
-      overview: movie.overview,
+      overview: movie.overview ?? '',
       genre_ids: movie.genre_ids,
       id: movie.id,
     }
@@ -63,6 +64,18 @@ function HomeComponent() {
       image: s.backdropImage.replace('/w500/', '/original/'), // força original
     })),
   ].sort((a, b) => b.vote_average - a.vote_average)
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      navigate({
+        to: `/search`,
+        search: {
+          querySearch: e.currentTarget.value,
+        },
+      })
+    }
+  }
 
   const isLoading = isLoadingSeries || isLoadingMovies
 
@@ -91,7 +104,7 @@ function HomeComponent() {
             {({ item, itemIndex, hovered, setHovered }) => (
               <Card
                 index={itemIndex}
-                card={item}
+                card={item as any}
                 hovered={hovered}
                 handleCardClick={() =>
                   item.category === 'movie'
@@ -108,7 +121,12 @@ function HomeComponent() {
           <div className="w-full flex justify-center">
             <div className="w-full px-5 mt-10 ">
               <Label className="mb-3">Buscar por filmes/séries</Label>
-              <QueryParamInput className="rounded-[8px] " />
+              <form>
+                <QueryParamInput
+                  className="rounded-[8px]"
+                  onKeyDown={onKeyDown}
+                />
+              </form>
             </div>
           </div>
           <p className="text-2xl font-bold text-left ml-5 text-white">
@@ -118,7 +136,7 @@ function HomeComponent() {
             {({ item, itemIndex, hovered, setHovered }) => (
               <Card
                 index={itemIndex}
-                card={item}
+                card={item as any}
                 hovered={hovered}
                 type="six-per-row"
                 handleCardClick={() => navigate({ to: `/movie/${item.id}` })}
@@ -136,7 +154,7 @@ function HomeComponent() {
               {({ item, itemIndex, hovered, setHovered }) => (
                 <Card
                   index={itemIndex}
-                  card={item}
+                  card={item as any}
                   hovered={hovered}
                   type="six-per-row"
                   handleCardClick={() => navigate({ to: `/series/${item.id}` })}

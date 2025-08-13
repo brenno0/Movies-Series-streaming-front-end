@@ -24,7 +24,9 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
           </Link>
           <NavigationMenuComponent items={TopNavItems} />
           <div>
-            <QueryParamInput className="max-w-70 rounded-2xl" />
+            <form>
+              <QueryParamInput className="max-w-70 rounded-2xl" />
+            </form>
           </div>
         </div>
       </div>

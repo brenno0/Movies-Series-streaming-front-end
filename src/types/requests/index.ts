@@ -1,7 +1,7 @@
 export interface IOptions {
-  method: string;
+  method: string
   headers: {
-    accept: string;
-    Authorization: string;
-  };
+    accept: string
+    Authorization: string
+  }
 }

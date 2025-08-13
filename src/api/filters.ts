@@ -1,10 +1,11 @@
-import type { ISeriesEpisodesResponseDTO } from '@/types'
-import type { IGetContentByQuerySearch } from '@/types/requests/filters'
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import type {
+  IGetContentByQuerySearch,
+  ITMDBMultiResponseDTO,
+} from '@/types/requests/filters'
 import { useQuery, type UseQueryResult } from '@tanstack/react-query'
 
-export const useGetSeriesEpisodesBySeason = <
-  TData = ISeriesEpisodesResponseDTO,
->({
+export const useGetContentBasedOnSearch = <TData = ITMDBMultiResponseDTO>({
   options,
   querySearch,
   ...queryOptions
