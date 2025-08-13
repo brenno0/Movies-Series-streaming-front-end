@@ -8,10 +8,11 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { type JSX, type ReactNode } from 'react'
+import * as DialogPrimitive from "@radix-ui/react-dialog"
 
-interface IModalProps {
+interface IModalProps extends  React.ComponentProps<typeof DialogPrimitive.Content> {
   modalTitle: string
-  modalDescription: string
+  modalDescription?: string
   children: ReactNode
   actions?: JSX.Element
   modalBodyTemplate?: JSX.Element
@@ -25,14 +26,15 @@ export const ModalComponent = ({
   modalHeadTemplate,
   children,
   actions,
+  ...props
 }: IModalProps) => {
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className='min-w-[100vh]' >
+      <DialogContent {...props} >
         <DialogHeader>
           {modalHeadTemplate}
-          <DialogTitle className="text-2xl text-center text-primary">
+          <DialogTitle className="text-3xl font-bold text-center">
             {modalTitle}
           </DialogTitle>
           <DialogDescription className="text-xs text-center">

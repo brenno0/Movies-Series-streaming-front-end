@@ -3,46 +3,30 @@
 import { useState } from "react"
 import "keen-slider/keen-slider.min.css"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '../ui/carousel'
-import { Card } from "../FocusCards"
 import Autoplay from "embla-carousel-autoplay"
-import { useNavigate } from "@tanstack/react-router"
+import type { CarouselProps } from "@/types/components/carouselComponent"
 
-interface Item {
-  title: string
-  image: string
-  vote_average?: number;
-  category: 'movie' | 'series',
-  overview?: string,
-  genre_ids:number[];
-  backdropImage:string;
-  id:number;
-}
-
-export function CarouselComponent({
+export function CarouselComponent<T>({
   items,
   type = 'six-per-row',
-  isRecommendationPanel = false,
-  delayInMilliseconds = 2000
-}: Readonly<{
-  items: Item[],
-  type?: 'full' | 'six-per-row',
-  isRecommendationPanel?: boolean,
-  delayInMilliseconds?: number
-}>) {
+  delayInMilliseconds = 2000,
+  hasArrows = true,
+  autoplay = true,
+  children,
+}: Readonly< CarouselProps<T> >) {
   const [hovered, setHovered] = useState<number | null>(null)
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null)
-  const navigate = useNavigate()
   
   return (
-    <div className="keen-slider px-4 w-full">
+    <div className="relative keen-slider px-4 w-full">
       <Carousel
-        className="w-full h-full"
-        plugins={[
+        className="relative w-full h-full"
+        plugins={autoplay ?[
           Autoplay({
             delay: delayInMilliseconds,
             stopOnInteraction: false,
           }),
-        ]}
+        ] : []}
       >
         <CarouselContent>
           {items.map((item, idx) => {
@@ -50,7 +34,7 @@ export function CarouselComponent({
             const draggingStyle = isDragging ? 'cursor-grabbing' : 'cursor-grab'
             return (
                 <CarouselItem
-                key={item.title}
+                key={JSON.stringify(item)}
                 onMouseDown={() => setDraggingIndex(idx)}
                 onMouseUp={() => setDraggingIndex(null)}
                 onMouseLeave={() => setDraggingIndex(null)}
@@ -59,22 +43,18 @@ export function CarouselComponent({
                     ? `basis-1/1 h-180 w-full ${draggingStyle}`
                     : 'basis-1/6 cursor-pointer'}
                 `}
-                onClick={() => navigate({ to:`/movie/${item.id}` })}
               >
-                  <Card
-                    index={idx}
-                    card={item}
-                    hovered={hovered}
-                    type={type}
-                    isRecommendationPanel={isRecommendationPanel}
-                    setHovered={setHovered}
-                  />
-                </CarouselItem>
+                {typeof children === 'function' ? children({ item, itemIndex:idx, hovered, setHovered  }) : children}
+              </CarouselItem>
             )
           })}
         </CarouselContent>
-        <CarouselPrevious />
-        <CarouselNext />
+        {hasArrows && (
+          <>
+            <CarouselPrevious className="text-white !rounded-full hover:bg-primary cursor-pointer"  variant="default" />
+            <CarouselNext className="text-white !rounded-full hover:bg-primary cursor-pointer" variant="default" />
+          </>
+        )}
       </Carousel>
     </div>
   )

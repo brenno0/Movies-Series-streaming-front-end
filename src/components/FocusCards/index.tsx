@@ -13,6 +13,7 @@ export const Card = React.memo(
     setHovered,
     type,
     isRecommendationPanel = false,
+    handleCardClick,
   }: {
     card: any;
     index: number;
@@ -20,14 +21,16 @@ export const Card = React.memo(
     type?:'full' | 'six-per-row'
     setHovered: React.Dispatch<React.SetStateAction<number | null>>;
     isRecommendationPanel?:boolean
+    handleCardClick?:() => void
   }) => {
     
     return (
       <div
+      onClick={handleCardClick}
       onMouseEnter={() => setHovered(index)}
       onMouseLeave={() => setHovered(null)}
       className={cn(
-        "rounded-2xl relative dark:bg-neutral-900 overflow-hidden  transition-all duration-300 ease-out",
+        "rounded-2xl relative dark:bg-neutral-900 overflow-hidden bg-amber-400 transition-all duration-300 ease-out",
         type === 'full' ? 'h-180' : 'h-60 md:h-96',
         hovered !== null && hovered !== index && "blur-sm scale-[0.98]"
       )}
