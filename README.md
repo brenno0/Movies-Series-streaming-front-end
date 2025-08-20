@@ -1,4 +1,7 @@
 🎬 Movies & Series Streaming Front-End
+
+<img width="1920" height="969" alt="image" src="https://github.com/user-attachments/assets/3c942f54-ae6d-4ef3-afe9-c92304fed192" />
+
 # 📌 Overview
 
 This project simulates a modern movie and series streaming platform, built with cutting-edge technologies. It provides an intuitive user interface for browsing and watching content, offering a seamless experience for movie enthusiasts.
