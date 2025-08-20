@@ -34,6 +34,8 @@ Watchlist: Save your favorite movies and series for later viewing.
 
 
 Home Page displaying featured movies and series.
+<img width="1920" height="959" alt="image" src="https://github.com/user-attachments/assets/55f585f1-dae4-4dd0-9712-606e6bf9e9b2" />
+<img width="1907" height="963" alt="image" src="https://github.com/user-attachments/assets/c7b14fa0-8496-4188-9a28-58b401232474" />
 
 
 Search results page with filter options.
