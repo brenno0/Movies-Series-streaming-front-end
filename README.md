@@ -1,6 +1,6 @@
 🎬 Movies & Series Streaming Front-End
 
-<img width="1920" height="969" alt="image" src="https://github.com/user-attachments/assets/3c942f54-ae6d-4ef3-afe9-c92304fed192" />
+<img width="1920" height="959" alt="image" src="https://github.com/user-attachments/assets/55f585f1-dae4-4dd0-9712-606e6bf9e9b2" />
 
 # 📌 Overview
 
