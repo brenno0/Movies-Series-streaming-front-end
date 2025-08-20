@@ -1,6 +1,7 @@
 import type { IGetMovieByIdDTO, IMDBResponseDTO, IOptions } from '@/types'
 import type { IMDBGenresResponseDTO } from '@/types/movies/genres'
 import type {
+  IMovieCreditsResponseDTO,
   UseGetMovieByIdProps,
   UseGetMoviesGenresProps,
 } from '@/types/requests/movies'
@@ -53,6 +54,24 @@ export const useGetRecommendedMovies = ({
       ).then((res) => res.json())
       return data
     },
+  })
+}
+
+export const useGetMovieCredits = <TData = IMovieCreditsResponseDTO>({
+  options,
+  movieId,
+  ...queryOptions
+}: UseGetMovieByIdProps<TData>): UseQueryResult<TData> => {
+  return useQuery<TData>({
+    queryKey: ['moviesCredits', movieId],
+    queryFn: async () => {
+      const res = await fetch(
+        `https://api.themoviedb.org/3/movie/${movieId}/credits?api_key=d175a4ba78a40605ed9c8b5bb88bc889&language=pt-BR`,
+        options,
+      )
+      return res.json()
+    },
+    ...queryOptions,
   })
 }
 

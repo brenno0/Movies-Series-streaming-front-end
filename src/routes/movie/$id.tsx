@@ -1,5 +1,9 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useGetMovieById, useGetRecommendedMovies } from '@/api/movies'
+import {
+  useGetMovieById,
+  useGetMovieCredits,
+  useGetRecommendedMovies,
+} from '@/api/movies'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Bookmark, PlayCircle } from 'lucide-react'
 import { CarouselComponent } from '@/components/Carousel'
@@ -7,12 +11,14 @@ import moment from 'moment'
 import { ModalComponent } from '@/components/Modal'
 import { MovieModalContent } from './ui/movieModal'
 import { Card } from '@/components/FocusCards'
+import { Skeleton } from '@/components/ui/skeleton'
+import type { CastMember } from '@/types'
 
 export const Route = createFileRoute('/movie/$id')({
   component: Movie,
 })
 
-function Movie() {
+export function Movie() {
   const options = {
     method: 'GET',
     headers: {
@@ -37,6 +43,10 @@ function Movie() {
     movieId: Number(id),
   })
 
+  const { data: creditsData, isLoading: isFetchingCredits } =
+    useGetMovieCredits({ options, movieId: id })
+  console.log('creditsData', creditsData)
+
   const recommendedMovies = recommendedMoviesData?.results.map((movie) => {
     return {
       title: movie.title,
@@ -51,20 +61,35 @@ function Movie() {
   })
 
   const movieUrl = ` https://multiembed.mov/?video_id=${movie?.imdb_id ?? ''}`
+  const backdropImage = `https://image.tmdb.org/t/p/original/${movie?.backdrop_path}`
 
   if (isMovieLoading) {
-    return <p>Carregando...</p>
+    return (
+      <>
+        <Skeleton
+          data-testid="skeleton"
+          className="w-9/10 h-100 mt-30 mx-auto rounded-2xl"
+        />
+        <div className="flex">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <Skeleton
+              data-testid="skeleton"
+              key={`key-${index}`}
+              className="w-1/5 gap-2 h-100 mt-30 mx-auto rounded-2xl"
+            />
+          ))}
+        </div>
+      </>
+    )
   }
 
   if (isMovieError || !movie) {
     return <p>Erro ao carregar dados do filme.</p>
   }
 
-  const backdropImage = `https://image.tmdb.org/t/p/original/${movie.backdrop_path}`
-
   return (
     <div>
-      <div className="rounded-2xl h-[70vh] relative overflow-hidden transition-all duration-300 ease-out">
+      <div className="rounded-2xl h-[55vh] relative overflow-hidden transition-all duration-300 ease-out">
         <img
           src={backdropImage}
           alt={movie.title}
@@ -74,17 +99,17 @@ function Movie() {
           className="absolute bottom-0 left-0 right-0 h-32"
           style={{
             background:
-              'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 100%)',
+              'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%)',
           }}
         />
         <div className="absolute inset-0 bg-black/30 flex flex-col justify-start py-8 px-4 transition-opacity duration-300">
-          <div className=" h-full flex flex-col justify-start ">
-            <Link to="/">
-              <ArrowLeft color="oklch(54.6% 0.245 262.881)" />
-            </Link>
+          <Link to="/">
+            <ArrowLeft color="oklch(54.6% 0.245 262.881)" />
+          </Link>
+          <div className=" h-full flex flex-col justify-end ">
             <p className="font-bold text-4xl mt-5 md:text-5xl">{movie.title}</p>
-            <div className="w-full flex items-center mt-6 gap-1">
-              <div className="h-5 w-15 bg-primary  py-4 flex justify-center items-center font-bold mr-2 rounded-[8px]">
+            <div className="w-full flex items-center my-6 gap-1">
+              <div className="h-5 w-15 bg-primary py-4 flex justify-center items-center font-bold mr-2 rounded-[8px]">
                 IMDB
               </div>
               <p className="font-bold text-white">
@@ -95,15 +120,9 @@ function Movie() {
                 {moment(movie.release_date).year()}
               </p>
             </div>
-            <div className="px-4">
-              <p className="max-w-250 my-8">{movie.overview}</p>
-            </div>
             <div className="mt-2 mx-2 flex w-full gap-2">
               {movie.genres.map((genre) => (
-                <div
-                  key={genre.id}
-                  className="h-10 w-auto px-4 font-bold border-2 border-primary rounded-2xl flex items-center justify-center"
-                >
+                <div key={genre.id} className="text-zinc-300">
                   {genre.name}
                 </div>
               ))}
@@ -123,7 +142,7 @@ function Movie() {
                 <Button
                   variant="default"
                   size="lg"
-                  className="h-14 w-50 text-lg !rounded-2xl bg-primary text-white hover:bg-blue-800 cursor-pointer"
+                  className="h-10 w-50 text-lg !rounded-[8px] bg-primary text-white hover:bg-blue-800 cursor-pointer"
                 >
                   <PlayCircle strokeWidth={1} className="size-lg" />
                   Assistir
@@ -132,7 +151,7 @@ function Movie() {
               <Button
                 variant="outline"
                 size="lg"
-                className="ml-10 h-14 text-lg w-50 mt-3 !rounded-2xl font-bold text-white  bg-transparent border-white hover:border-white/70 hover:text-white/70 hover:bg-transparent cursor-pointer"
+                className="ml-10 h-10 text-lg w-50 mt-3  !rounded-[8px]  font-bold text-white  bg-transparent border-white hover:border-white/70 hover:text-white/70 hover:bg-transparent cursor-pointer"
               >
                 <Bookmark strokeWidth={1} className="size-lg" />
                 Adicionar a Lista
@@ -140,14 +159,41 @@ function Movie() {
             </div>
           </div>
         </div>
-        <p className="text-white">asd</p>
       </div>
 
-      <div className="mx-4 mt-30 mb-10">
+      <div className="mx-4 mt-5 mb-10">
+        <div className="px-4 mb-15">
+          <p className="text-2xl mb-6 font-bold mt-6">Sinopse</p>
+          <p className="my-8 text-zinc-300">{movie.overview}</p>
+        </div>
+        <div className="px-4 mb-30">
+          <p className="text-2xl mb-6 font-bold mt-6">Elenco</p>
+          <div className="flex gap-6">
+            <CarouselComponent<CastMember>
+              hasArrows={false}
+              items={creditsData?.cast || []}
+            >
+              {({ item }) => (
+                <div key={item.id} className="flex items-center gap-4">
+                  <img
+                    className="w-16 h-16 rounded-full object-cover"
+                    alt={item.name}
+                    src={`https://image.tmdb.org/t/p/w500/${item.profile_path}`}
+                  />
+                  <div className="flex flex-col">
+                    <p className="font-bold">{item.name}</p>
+                    <p className="text-zinc-500 text-sm">{item.character}</p>
+                  </div>
+                </div>
+              )}
+            </CarouselComponent>
+          </div>
+        </div>
         <p className="text-xl mb-6 font-bold mt-6">Filmes semelhantes</p>
         <CarouselComponent items={recommendedMovies || []}>
           {({ item, itemIndex, hovered, setHovered }) => (
             <Card
+              data-testid="recommended-movies-card"
               index={itemIndex}
               card={item}
               handleCardClick={() => navigate({ to: `/movie/${item.id}` })}

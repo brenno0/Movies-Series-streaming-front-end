@@ -13,7 +13,7 @@ export const Route = createFileRoute('/home/')({
   component: HomeComponent,
 })
 
-function HomeComponent() {
+export function HomeComponent() {
   const options = {
     method: 'GET',
     headers: {
@@ -83,10 +83,14 @@ function HomeComponent() {
     <>
       {isLoading ? (
         <>
-          <Skeleton className="w-9/10 h-100 mt-30 mx-auto rounded-2xl" />
+          <Skeleton
+            data-testid="skeleton"
+            className="w-9/10 h-100 mt-30 mx-auto rounded-2xl"
+          />
           <div className="flex">
             {Array.from({ length: 5 }).map((_, index) => (
               <Skeleton
+                data-testid="skeleton"
                 key={`key-${index}`}
                 className="w-1/5 gap-2 h-100 mt-30 mx-auto rounded-2xl"
               />

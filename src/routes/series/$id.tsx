@@ -53,7 +53,6 @@ function Series() {
   } = useGetRecommendedSeries({ options, seriesId: id })
   const { data: creditsData, isLoading: isFetchingCredits } =
     useGetSeriesCredits({ options, seriesId: id })
-
   const [selectedSeason, setSelectedSeason] = useState<number | undefined>(1)
   const [episode, setEpisode] = useState<number | undefined>(1)
 
