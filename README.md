@@ -3,7 +3,7 @@
 
 This project simulates a modern movie and series streaming platform, built with cutting-edge technologies. It provides an intuitive user interface for browsing and watching content, offering a seamless experience for movie enthusiasts.
 
-🛠️ Technologies Used
+### 🛠️ Technologies Used
 
 React: JavaScript library for building user interfaces.
 
