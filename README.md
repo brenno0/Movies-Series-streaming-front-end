@@ -1,9 +1,9 @@
 🎬 Movies & Series Streaming Front-End
-📌 Overview
+# 📌 Overview
 
 This project simulates a modern movie and series streaming platform, built with cutting-edge technologies. It provides an intuitive user interface for browsing and watching content, offering a seamless experience for movie enthusiasts.
 
-### 🛠️ Technologies Used
+## 🛠️ Technologies Used
 
 React: JavaScript library for building user interfaces.
 
@@ -15,7 +15,7 @@ Husky: Git hooks for pre-commit and pre-push checks.
 
 Jest: JavaScript testing framework for unit and integration tests.
 
-🚀 Features
+## 🚀 Features
 
 Responsive Design: Optimized for both desktop and mobile devices.
 
@@ -27,7 +27,7 @@ User Authentication: Secure login and registration system.
 
 Watchlist: Save your favorite movies and series for later viewing.
 
-📸 Screenshots
+## 📸 Screenshots
 
 
 Home Page displaying featured movies and series.
@@ -38,7 +38,7 @@ Search results page with filter options.
 
 Detailed view of a selected movie.
 
-🧪 Testing
+## 🧪 Testing
 
 To run tests, use the following command:
 
@@ -47,7 +47,7 @@ npm run test
 
 This will execute unit and integration tests to ensure the application's functionality.
 
-📦 Installation
+## 📦 Installation
 
 Clone the repository:
 
