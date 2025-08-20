@@ -1,8 +1,10 @@
-🎬 Movies & Series Streaming Front-End
+🇬🇧 English | [🇧🇷 Português](README.pt.md)
+
+# 🎬 Movies & Series Streaming Front-End
 
 <img width="1920" height="959" alt="image" src="https://github.com/user-attachments/assets/55f585f1-dae4-4dd0-9712-606e6bf9e9b2" />
 
-# 📌 Overview
+## 📌 Overview
 
 This project simulates a modern movie and series streaming platform, built with cutting-edge technologies. It provides an intuitive user interface for browsing and watching content, offering a seamless experience for movie enthusiasts.
 
