@@ -76,7 +76,8 @@ function Series() {
     }
   })
 
-  const movieUrl = `https://multiembed.mov/directstream.php?video_id=${id}&tmdb=1&s=${selectedSeason}&e=${episode}`
+  // const seriesUrl = `https://multiembed.mov/directstream.php?video_id=${id}&tmdb=1&s=${selectedSeason}&e=${episode}`
+  const seriesUrl = `https://vidsrc.icu/embed/tv/${id}/${selectedSeason}/${episode}`
 
   if (isSeriesError || !series) {
     return <p>Erro ao carregar dados do filme.</p>
@@ -239,7 +240,7 @@ function Series() {
                           modalBodyTemplate={
                             <MovieModalContent
                               movieTitle={series.name}
-                              movieURL={movieUrl}
+                              seriesUrl={seriesUrl}
                             />
                           }
                         >

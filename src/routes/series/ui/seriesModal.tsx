@@ -1,11 +1,10 @@
 import { useEffect } from 'react'
 
 export function MovieModalContent({
-  movieURL,
+  seriesUrl,
   movieTitle,
-}: Readonly<{ movieURL: string; movieTitle: string }>) {
+}: Readonly<{ seriesUrl: string; movieTitle: string }>) {
   useEffect(() => {
-    console.log('movieURL', movieURL)
     const handleMessage = (event: MessageEvent) => {
       // cheque a origem do iframe
       if (event.origin !== 'https://player-externo.com') return
@@ -24,7 +23,7 @@ export function MovieModalContent({
     <iframe
       title={movieTitle}
       className="w-full min-h-[90vh]"
-      src={movieURL}
+      src={seriesUrl}
       allowFullScreen
     />
   )

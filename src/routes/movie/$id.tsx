@@ -60,7 +60,8 @@ export function Movie() {
     }
   })
 
-  const movieUrl = ` https://multiembed.mov/?video_id=${movie?.imdb_id ?? ''}`
+  const movieUrl = `https://vidsrc.icu/embed/movie/${movie?.imdb_id ?? ''}`
+  // const movieUrl = ` https://multiembed.mov/?video_id=${movie?.imdb_id ?? ''}`
   const backdropImage = `https://image.tmdb.org/t/p/original/${movie?.backdrop_path}`
 
   if (isMovieLoading) {
