@@ -40,8 +40,13 @@ Home Page displaying featured movies and series.
 
 Search results page with filter options.
 
+<img width="1919" height="953" alt="image" src="https://github.com/user-attachments/assets/c0dec8ab-0509-4d34-b12a-cbc38f31d378" />
+
 
 Detailed view of a selected movie.
+
+<img width="1922" height="955" alt="image" src="https://github.com/user-attachments/assets/5c8e92ab-ba05-4177-a655-e018adb23dde" />
+
 
 ## 🧪 Testing
 
