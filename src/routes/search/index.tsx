@@ -33,8 +33,9 @@ function Search() {
 
   if (!querySearch)
     return (
-      <div className="w-screen h-screen flex items-center justify-center">
-        <p>Parece que você não pesquisou nada ainda</p>
+      <div className="w-full h-[70vh] flex flex-col items-center justify-center gap-3">
+        <p className="text-white/20 text-4xl">⌕</p>
+        <p className="text-white/40 text-sm">Você ainda não pesquisou nada</p>
       </div>
     )
 
@@ -58,42 +59,53 @@ function Search() {
   console.log('formattedContent length:', formattedContent?.length)
 
   return (
-    <div>
+    <div className="px-8 md:px-12 py-10">
       {isLoading ? (
         <div>
-          <Skeleton className="w-2/10 h-10 mt-30 mx-auto rounded-2xl" />
-          <div className="flex justify-center gap-5 flex-wrap">
+          <Skeleton className="w-48 h-5 rounded mb-10" />
+          <div className="flex justify-start gap-4 flex-wrap">
             {Array.from({ length: 10 }).map((_, index) => (
-              <Skeleton
-                key={`key-${index}`}
-                className="w-1/6 gap-2 h-100 mt-30 mx-auto rounded-2xl"
-              />
+              <Skeleton key={`key-${index}`} className="w-44 h-64 rounded-xl" />
             ))}
           </div>
         </div>
       ) : (
         <div>
-          <p className="font-bold text-2xl text-center my-10">
-            Resultados encontrados
-          </p>
-          <div className="flex justify-center gap-5 flex-wrap">
-            {formattedContent?.map((item, index) => (
-              <div key={item.id} className="basis-1/6 min-w-0 cursor-pointer">
-                <Card
-                  card={item}
-                  handleCardClick={() =>
-                    item.category === 'movie'
-                      ? navigate({ to: `/movie/${item.id}` })
-                      : navigate({ to: `/series/${item.id}` })
-                  }
-                  hovered={hovered}
-                  setHovered={setHovered}
-                  index={index}
-                  isRecommendationPanel={false}
-                />
-              </div>
-            ))}
+          <div className="mb-8">
+            <span className="section-label block mb-1">Resultados da busca</span>
+            <p className="text-xl font-semibold text-white">
+              "{querySearch}"
+              <span className="text-white/30 text-base font-normal ml-3">
+                {formattedContent.length} {formattedContent.length === 1 ? 'resultado' : 'resultados'}
+              </span>
+            </p>
           </div>
+
+          {formattedContent.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-60 gap-3">
+              <p className="text-white/20 text-4xl">⌕</p>
+              <p className="text-white/40 text-sm">Nenhum resultado encontrado para "{querySearch}"</p>
+            </div>
+          ) : (
+            <div className="flex justify-start gap-4 flex-wrap">
+              {formattedContent?.map((item, index) => (
+                <div key={item.id} className="w-44 cursor-pointer">
+                  <Card
+                    card={item}
+                    handleCardClick={() =>
+                      item.category === 'movie'
+                        ? navigate({ to: `/movie/${item.id}` })
+                        : navigate({ to: `/series/${item.id}` })
+                    }
+                    hovered={hovered}
+                    setHovered={setHovered}
+                    index={index}
+                    isRecommendationPanel={false}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

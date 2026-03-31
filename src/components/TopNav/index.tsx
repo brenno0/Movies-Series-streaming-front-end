@@ -1,6 +1,5 @@
 'use client'
 
-import * as React from 'react'
 import { Link } from '@tanstack/react-router'
 
 import {
@@ -13,54 +12,53 @@ import {
 } from '@/components/ui/navigation-menu'
 import type { INavigationMenuProps, ITopNavCategories } from '@/types'
 
-const getMainCategoryItem = ({ item }: { item: ITopNavCategories }) => {
-  return item.categoryItems.find(
-    (categoryItem) => categoryItem.mainItem === true,
-  )
-}
+const isDropdownCategory = (item: ITopNavCategories) =>
+  item.categoryItems.length > 1
 
 export function NavigationMenuComponent({
   items,
 }: Readonly<INavigationMenuProps>) {
   return (
     <NavigationMenu viewport={false} className="z-999999 w-full">
-      <NavigationMenuList>
+      <NavigationMenuList className="gap-0">
         {items.map((item) => {
+          // Single-item categories → flat nav link (no dropdown)
+          if (!isDropdownCategory(item)) {
+            const target = item.categoryItems[0]
+            return (
+              <NavigationMenuItem key={item.categoryTitle}>
+                <NavigationMenuLink asChild>
+                  <Link
+                    to={target.href as any}
+                    className="inline-flex h-9 items-center px-4 py-2 text-sm font-medium text-white/55 hover:text-white transition-colors rounded-md"
+                  >
+                    {item.categoryTitle}
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            )
+          }
+
+          // Multi-item categories (Gêneros) → dropdown
           return (
             <NavigationMenuItem key={item.categoryTitle}>
-              <NavigationMenuTrigger className="bg-transparent">
+              <NavigationMenuTrigger className="bg-transparent text-white/55 hover:text-white text-sm font-medium transition-colors h-9">
                 {item.categoryTitle}
               </NavigationMenuTrigger>
               <NavigationMenuContent>
-                <ul className="grid gap-2 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
-                  {item.categoryItems.findIndex(
-                    (categoryItem) => categoryItem.mainItem === true,
-                  ) !== -1 && (
-                    <ListItem
-                      href={getMainCategoryItem({ item })?.href as string}
-                      title={getMainCategoryItem({ item })?.title}
-                      className="row-span-3"
-                    >
-                      <p className="text-md mt-4">
-                        {getMainCategoryItem({ item })?.description}
-                      </p>
-                    </ListItem>
-                  )}
-                  {item.categoryItems
-                    .filter((categoryItem) => categoryItem.mainItem !== true)
-                    .map((categoryItem) => (
-                      <ListItem
+                <div className="p-3 md:w-[480px]">
+                  <p className="section-label px-2 mb-3">Explorar por gênero</p>
+                  <ul className="grid grid-cols-4 gap-1">
+                    {item.categoryItems.map((categoryItem) => (
+                      <GenreItem
                         key={categoryItem.title}
                         href={categoryItem.href}
                         title={categoryItem.title}
-                        className="row-span-3"
-                      >
-                        <p className="text-md mt-4">
-                          {categoryItem.description}
-                        </p>
-                      </ListItem>
+                        description={categoryItem.description}
+                      />
                     ))}
-                </ul>
+                  </ul>
+                </div>
               </NavigationMenuContent>
             </NavigationMenuItem>
           )
@@ -70,19 +68,33 @@ export function NavigationMenuComponent({
   )
 }
 
-function ListItem({
+function GenreItem({
   title,
-  children,
+  description,
   href,
-  ...props
-}: React.ComponentPropsWithoutRef<'li'> & { href: string }) {
+}: {
+  title: string
+  description: string
+  href: string
+}) {
   return (
-    <li {...props}>
+    <li className="list-none">
       <NavigationMenuLink asChild>
-        <Link to={href}>
-          <div className="text-sm leading-none font-medium">{title}</div>
-          <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">
-            {children}
+        <Link
+          to={href as any}
+          className="block px-3 py-2.5 rounded-md transition-colors group"
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'oklch(52% 0.22 27 / 0.15)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent'
+          }}
+        >
+          <p className="text-sm font-semibold text-white leading-none mb-1">
+            {title}
+          </p>
+          <p className="text-xs text-white/35 leading-snug line-clamp-1">
+            {description}
           </p>
         </Link>
       </NavigationMenuLink>

@@ -76,11 +76,15 @@ function Series() {
     }
   })
 
-  // const seriesUrl = `https://multiembed.mov/directstream.php?video_id=${id}&tmdb=1&s=${selectedSeason}&e=${episode}`
+  // const seriesUrl = `https://multiembed.mov/directstram.php?video_id=${id}&tmdb=1&s=${selectedSeason}&e=${episode}`
   const seriesUrl = `https://vidsrc.icu/embed/tv/${id}/${selectedSeason}/${episode}`
 
   if (isSeriesError || !series) {
-    return <p>Erro ao carregar dados do filme.</p>
+    return (
+      <div className="w-full h-[60vh] flex items-center justify-center">
+        <p className="text-white/40 text-sm">Erro ao carregar dados da série.</p>
+      </div>
+    )
   }
 
   const backdropImage = `https://image.tmdb.org/t/p/original/${series.backdrop_path}`
@@ -88,255 +92,217 @@ function Series() {
   return (
     <div>
       {isSeriesLoading || isFetchingRecommendedMovies || isFetchingCredits ? (
-        <>
-          <Skeleton className="w-9/10 h-100 mt-30 mx-auto rounded-2xl" />
-          <div className="flex">
-            {Array.from({ length: 5 }).map((_, index) => (
-              <Skeleton
-                key={`key-${index}`}
-                className="w-1/5 gap-2 h-100 mt-30 mx-auto rounded-2xl"
-              />
+        <div className="px-8 md:px-12">
+          <Skeleton className="w-full h-[65vh] rounded-none" />
+          <div className="flex gap-3 mt-10">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <Skeleton key={`key-${index}`} className="flex-1 h-56 rounded-xl" />
             ))}
           </div>
-        </>
+        </div>
       ) : (
         <div>
-          <div className="rounded-2xl h-[55vh] relative overflow-hidden transition-all duration-300 ease-out">
+          {/* Hero — full bleed */}
+          <div className="h-[65vh] relative overflow-hidden">
             <img
               src={backdropImage}
               alt={series.name}
-              className="object-contain object-center absolute inset-0 w-full "
+              className="object-cover object-center absolute inset-0 w-full h-full"
             />
             <div
-              className="absolute bottom-0 left-0 right-0 h-32"
+              className="absolute inset-0"
               style={{
-                background:
-                  'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%)',
+                background: 'linear-gradient(to top, oklch(9% 0 0) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.2) 100%)',
               }}
             />
-            <div className="absolute inset-0 bg-black/30 flex flex-col justify-start py-8 px-4 transition-opacity duration-300">
-              <Link to="/">
-                <ArrowLeft color="white" />
+            <div className="absolute inset-0 flex flex-col justify-between py-8 px-8 md:px-12">
+              <Link to="/" className="flex items-center gap-2 text-white/50 hover:text-white transition-colors w-fit">
+                <ArrowLeft className="size-4" />
+                <span className="text-sm">Voltar</span>
               </Link>
-              <div className=" h-full flex flex-col justify-end mt-10 ">
-                <p className="font-bold text-4xl mt-5 md:text-6xl">
-                  {series.name}
-                </p>
-                <div className="w-full flex items-center mt-2 mb-2 gap-1">
-                  <p className="font-bold text-zinc-300">
-                    {moment(series.first_air_date).year()}
-                  </p>
-                  <div className="border-0.5 my-1 border-l mx-2 border-primary h-5"></div>
-                  {series.genres.map((genre) => (
-                    <div key={genre.id} className="text-zinc-300">
-                      {genre.name}
-                    </div>
+
+              <div className="pb-2">
+                <p className="hero-title text-5xl md:text-7xl text-white mb-4">{series.name}</p>
+
+                <div className="flex items-center gap-3 mb-4 flex-wrap">
+                  {moment(series.first_air_date).year() > 0 && (
+                    <>
+                      <span className="text-white/50 text-sm">{moment(series.first_air_date).year()}</span>
+                      <span className="text-white/30 text-xs">·</span>
+                    </>
+                  )}
+                  {series.genres.slice(0, 3).map((genre, i) => (
+                    <span key={genre.id} className="text-white/50 text-sm">
+                      {genre.name}{i < Math.min(series.genres.length, 3) - 1 ? '' : ''}
+                    </span>
                   ))}
                 </div>
 
-                <div className="mt-4">
+                <div className="flex items-center gap-3 mt-5">
                   <Button
                     variant="default"
                     size="lg"
-                    className="h-10 w-50 text-lg !rounded-[8px] bg-primary text-white hover:bg-blue-800 cursor-pointer"
+                    className="h-10 px-6 bg-white text-black hover:bg-white/90 cursor-pointer font-medium text-sm rounded-md"
                   >
-                    <PlayCircle strokeWidth={1} className="size-lg" />
+                    <PlayCircle className="size-4" />
                     Assistir
                   </Button>
                   <Button
                     variant="outline"
                     size="lg"
-                    className="ml-10 h-10 text-lg w-50 mt-3  !rounded-[8px]  font-bold text-white  bg-transparent border-white hover:border-white/70 hover:text-white/70 hover:bg-transparent cursor-pointer"
+                    className="h-10 px-6 font-medium text-sm text-white bg-transparent border-white/30 hover:border-white/60 hover:bg-white/5 hover:text-white cursor-pointer rounded-md"
                   >
-                    <Bookmark strokeWidth={1} className="size-lg" />
-                    Adicionar a Lista
+                    <Bookmark className="size-4" />
+                    Adicionar à Lista
                   </Button>
                 </div>
-                <div></div>
               </div>
             </div>
           </div>
-          <div className="mx-4 mt-10 mb-10">
-            <div className="px-4 mb-5">
-              <p className="text-2xl mb-6 font-bold mt-6">Sinopse</p>
-              <p className="my-8 text-zinc-300">{series.overview}</p>
+
+          {/* Content */}
+          <div className="px-8 md:px-12 mt-10 mb-16 space-y-12">
+            {/* Sinopse */}
+            <div>
+              <span className="section-label block mb-2">Sobre a série</span>
+              <p className="text-lg font-semibold text-white mb-4">Sinopse</p>
+              <p className="text-white/55 leading-relaxed max-w-3xl font-light">{series.overview}</p>
             </div>
-            <div className="px-4 mb-30">
-              <p className="text-2xl mb-6 font-bold mt-6">Elenco</p>
-              <div className="flex gap-6">
-                <CarouselComponent<CastMember>
-                  hasArrows={false}
-                  items={creditsData?.cast || []}
-                >
-                  {({ item }) => (
-                    <div key={item.id} className="flex items-center gap-4">
+
+            {/* Elenco */}
+            <div>
+              <span className="section-label block mb-2">Quem está na série</span>
+              <p className="text-lg font-semibold text-white mb-5">Elenco</p>
+              <CarouselComponent<CastMember> hasArrows={false} autoplay={false} items={creditsData?.cast || []}>
+                {({ item }) => (
+                  <div key={item.id} className="flex flex-col items-center gap-2 text-center px-1">
+                    <div className="w-14 h-14 rounded-full overflow-hidden bg-white/5 flex-shrink-0">
                       <img
-                        className="w-16 h-16 rounded-full object-cover"
+                        className="w-full h-full object-cover"
                         alt={item.name}
                         src={`https://image.tmdb.org/t/p/w500/${item.profile_path}`}
                       />
-                      <div className="flex flex-col">
-                        <p className="font-bold">{item.name}</p>
-                        <p className="text-zinc-500 text-sm">
-                          {item.character}
-                        </p>
-                      </div>
                     </div>
-                  )}
-                </CarouselComponent>
-              </div>
-              <div className="my-10">
-                <div className="flex justify-between">
-                  <p className="text-2xl  font-bold ">
-                    Episódios{' '}
-                    {String(episodesData?.episodes[0].episode_number) +
-                      ' - ' +
-                      String(
-                        episodesData?.episodes[
-                          episodesData?.episodes.length - 1
-                        ].episode_number,
-                      )}
-                  </p>
-                  <Select
-                    onValueChange={(value) => setSelectedSeason(Number(value))}
-                    defaultValue={series.seasons[0].season_number.toString()}
-                  >
-                    <SelectTrigger className="w-[180px] rounded-[8px]">
-                      <SelectValue placeholder="Temporada" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {series.seasons.map((season) => (
-                        <SelectItem
-                          key={season.name}
-                          value={season.season_number.toString()}
-                        >
-                          {season.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                    <div>
+                      <p className="font-medium text-white text-xs leading-tight">{item.name}</p>
+                      <p className="text-white/35 text-xs mt-0.5 leading-tight">{item.character}</p>
+                    </div>
+                  </div>
+                )}
+              </CarouselComponent>
+            </div>
 
-                <div className="mt-4">
-                  {/* {Todo: Come back here and make a not found for seasons that has no episodes launched yet} */}
-                  {isFetchingEpisodes ? (
-                    <div className="flex gap-2">
-                      {Array.from({ length: 5 }).map((_, index) => (
-                        <Skeleton
-                          key={`key-${index}`}
-                          className="w-1/5 gap-2 h-50 mt-10 mx-auto rounded-2xl"
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <CarouselComponent<IEpisode>
-                      autoplay={false}
-                      items={episodesData?.episodes || []}
-                    >
-                      {({ item }) => (
-                        <ModalComponent
-                          className="!z-[99999999999] min-w-[90vw] min-h-[90vh]"
-                          modalTitle={series.name}
-                          modalBodyTemplate={
-                            <MovieModalContent
-                              movieTitle={series.name}
-                              seriesUrl={seriesUrl}
+            {/* Episódios */}
+            <div>
+              <div className="flex items-end justify-between mb-5">
+                <div>
+                  <span className="section-label block mb-2">Episódios</span>
+                  <p className="text-lg font-semibold text-white">
+                    {episodesData?.episodes?.length
+                      ? `Ep. ${episodesData.episodes[0].episode_number} — ${episodesData.episodes[episodesData.episodes.length - 1].episode_number}`
+                      : 'Episódios'}
+                  </p>
+                </div>
+                <Select
+                  onValueChange={(value) => setSelectedSeason(Number(value))}
+                  defaultValue={series.seasons[0].season_number.toString()}
+                >
+                  <SelectTrigger className="w-44 h-9 text-sm rounded-md border-white/15 bg-white/5 text-white/70">
+                    <SelectValue placeholder="Temporada" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {series.seasons.map((season) => (
+                      <SelectItem key={season.name} value={season.season_number.toString()}>
+                        {season.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                {isFetchingEpisodes ? (
+                  <div className="flex gap-3">
+                    {Array.from({ length: 5 }).map((_, index) => (
+                      <Skeleton key={`key-${index}`} className="flex-1 h-40 rounded-xl" />
+                    ))}
+                  </div>
+                ) : (
+                  <CarouselComponent<IEpisode> autoplay={false} items={episodesData?.episodes || []}>
+                    {({ item }) => (
+                      <ModalComponent
+                        className="!z-[99999999999] min-w-[90vw] min-h-[90vh]"
+                        modalTitle={series.name}
+                        modalBodyTemplate={
+                          <MovieModalContent movieTitle={series.name} seriesUrl={seriesUrl} />
+                        }
+                      >
+                        <div className="relative w-full overflow-hidden rounded-xl group cursor-pointer">
+                          <motion.div
+                            initial="hidden"
+                            whileHover="visible"
+                            className="relative w-full h-full"
+                            onClick={() => setEpisode(item.episode_number)}
+                          >
+                            <motion.img
+                              alt={item.name}
+                              src={`https://image.tmdb.org/t/p/w500/${item.still_path ?? episodesData?.poster_path}`}
+                              className="w-full h-36 object-cover"
+                              variants={{ hidden: { scale: 1 }, visible: { scale: 1.06 } }}
+                              transition={{ duration: 0.4, ease: 'easeOut' }}
                             />
-                          }
-                        >
-                          <div className="relative w-full max-h-41 overflow-hidden rounded-lg group">
                             <motion.div
-                              initial="hidden"
-                              whileHover="visible"
-                              className="relative w-full h-full"
-                              onClick={() => setEpisode(item.episode_number)}
+                              className="absolute inset-0 flex flex-col justify-end p-3"
+                              variants={{
+                                hidden: { backgroundColor: 'rgba(0,0,0,0.35)' },
+                                visible: { backgroundColor: 'rgba(0,0,0,0.72)' },
+                              }}
+                              transition={{ duration: 0.3, ease: 'easeOut' }}
                             >
-                              <motion.img
-                                alt={item.name}
-                                src={`https://image.tmdb.org/t/p/w500/${item.still_path ?? episodesData?.poster_path}`}
-                                className="w-full max-h-41 object-cover"
-                                variants={{
-                                  hidden: { scale: 1 },
-                                  visible: { scale: 1.05 },
-                                }}
-                                transition={{ duration: 0.4, ease: 'easeOut' }}
-                              />
-                              {/* Overlay */}
                               <motion.div
-                                className="absolute inset-0 flex flex-col justify-end p-2"
-                                variants={{
-                                  hidden: {
-                                    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                                  },
-                                  visible: {
-                                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                                  },
-                                }}
-                                transition={{ duration: 0.3, ease: 'easeOut' }}
+                                variants={{ hidden: { height: '1.5rem' }, visible: { height: 'auto' } }}
+                                transition={{ duration: 0.35, ease: 'easeOut' }}
+                                className="overflow-hidden"
                               >
-                                <motion.div
-                                  variants={{
-                                    hidden: { height: '2rem' },
-                                    visible: { height: 'auto' },
-                                  }}
-                                  transition={{
-                                    duration: 0.4,
-                                    ease: 'easeOut',
-                                  }}
-                                  className="overflow-hidden"
+                                <p className="text-white font-medium text-xs leading-tight">
+                                  Ep.{item.episode_number} · {item.name}
+                                </p>
+                                <motion.p
+                                  className="text-white/60 text-xs mt-1.5 leading-relaxed"
+                                  variants={{ hidden: { opacity: 0, y: 6 }, visible: { opacity: 1, y: 0 } }}
+                                  transition={{ duration: 0.3, delay: 0.1, ease: 'easeOut' }}
                                 >
-                                  <motion.p
-                                    className="text-white font-bold"
-                                    variants={{
-                                      hidden: { y: 0, opacity: 1 },
-                                      visible: { y: 0, opacity: 1 },
-                                    }}
-                                  >
-                                    {'Ep.' +
-                                      item.episode_number +
-                                      ' ' +
-                                      item.name}
-                                  </motion.p>
-                                  <motion.p
-                                    className="text-white text-sm mt-1"
-                                    variants={{
-                                      hidden: { opacity: 0, y: 10 },
-                                      visible: { opacity: 1, y: 0 },
-                                    }}
-                                    transition={{
-                                      duration: 0.3,
-                                      delay: 0.1,
-                                      ease: 'easeOut',
-                                    }}
-                                  >
-                                    {truncateText(item.overview, 100)}
-                                  </motion.p>
-                                </motion.div>
+                                  {truncateText(item.overview, 90)}
+                                </motion.p>
                               </motion.div>
                             </motion.div>
-                          </div>
-                        </ModalComponent>
-                      )}
-                    </CarouselComponent>
-                  )}
-                </div>
+                          </motion.div>
+                        </div>
+                      </ModalComponent>
+                    )}
+                  </CarouselComponent>
+                )}
               </div>
             </div>
 
-            <p className="text-xl mb-6 font-bold mt-6">Séries semelhantes</p>
-            <CarouselComponent items={recommendedSeries || []}>
-              {({ item, itemIndex, hovered, setHovered }) => (
-                <Card
-                  index={itemIndex}
-                  card={item}
-                  hovered={hovered}
-                  handleCardClick={() => navigate({ to: `/series/${item.id}` })}
-                  type="six-per-row"
-                  isRecommendationPanel={false}
-                  setHovered={setHovered}
-                />
-              )}
-            </CarouselComponent>
+            {/* Séries semelhantes */}
+            <div>
+              <span className="section-label block mb-2">Você também pode gostar</span>
+              <p className="text-lg font-semibold text-white mb-5">Séries Semelhantes</p>
+              <CarouselComponent items={recommendedSeries || []}>
+                {({ item, itemIndex, hovered, setHovered }) => (
+                  <Card
+                    index={itemIndex}
+                    card={item}
+                    hovered={hovered}
+                    handleCardClick={() => navigate({ to: `/series/${item.id}` })}
+                    type="six-per-row"
+                    isRecommendationPanel={false}
+                    setHovered={setHovered}
+                  />
+                )}
+              </CarouselComponent>
+            </div>
           </div>
         </div>
       )}

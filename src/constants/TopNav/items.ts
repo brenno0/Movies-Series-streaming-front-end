@@ -1,38 +1,112 @@
 import type { ITopNavCategories } from "@/types";
 
-export const TopNavItems:ITopNavCategories[] = [
+export const TopNavItems: ITopNavCategories[] = [
   {
-    categoryTitle:'Início',
-    categoryItems:[
+    categoryTitle: 'Início',
+    categoryItems: [
       {
-        href:'/home',
-        title:'Início',
-        description:'Veja os melhores filmes e séries. Encontre filmes recomendados e populares da semana',
-        mainItem:true
+        href: '/home',
+        title: 'Início',
+        description: 'Página inicial',
+        mainItem: true,
       },
-      {
-        href:'/series',
-        title:'Séries',
-        description:'Busque e assista suas séries favoritas',
-        mainItem:false,
-      },
-      {
-        href:'/movies',
-        title:'Filmes',
-        description:'Busque e assista seus filmes favoritos',
-        mainItem:false,
-      }
-    ]
+    ],
   },
   {
-    categoryTitle:'Canais de TV',
-    categoryItems:[
+    categoryTitle: 'Filmes',
+    categoryItems: [
       {
-        href:'/TvChannels',
-        title:'Canais',
-        description:'Encontre seus canais favoritos, assista a filmes, séries, esportes, tudo em um só lugar.',
-        mainItem:true
+        href: '/movies',
+        title: 'Filmes',
+        description: 'Todos os filmes',
+        mainItem: true,
       },
-    ]
-  }
+    ],
+  },
+  {
+    categoryTitle: 'Séries',
+    categoryItems: [
+      {
+        href: '/series',
+        title: 'Séries',
+        description: 'Todas as séries',
+        mainItem: true,
+      },
+    ],
+  },
+  {
+    categoryTitle: 'Gêneros',
+    categoryItems: [
+      {
+        href: '/genre?genreId=28&genreName=Ação&type=movie',
+        title: 'Ação',
+        description: 'Adrenalina, lutas e explosões',
+        mainItem: true,
+      },
+      {
+        href: '/genre?genreId=35&genreName=Comédia&type=movie',
+        title: 'Comédia',
+        description: 'Para dar boas risadas',
+        mainItem: false,
+      },
+      {
+        href: '/genre?genreId=18&genreName=Drama&type=movie',
+        title: 'Drama',
+        description: 'Histórias que emocionam',
+        mainItem: false,
+      },
+      {
+        href: '/genre?genreId=27&genreName=Terror&type=movie',
+        title: 'Terror',
+        description: 'Para quem gosta de sentir medo',
+        mainItem: false,
+      },
+      {
+        href: '/genre?genreId=878&genreName=Sci-Fi&type=movie',
+        title: 'Sci-Fi',
+        description: 'O futuro e além',
+        mainItem: false,
+      },
+      {
+        href: '/genre?genreId=16&genreName=Animação&type=movie',
+        title: 'Animação',
+        description: 'Para todas as idades',
+        mainItem: false,
+      },
+      {
+        href: '/genre?genreId=99&genreName=Documentários&type=movie',
+        title: 'Documentários',
+        description: 'Histórias reais, mundos reais',
+        mainItem: false,
+      },
+      {
+        href: '/genre?genreId=10749&genreName=Romance&type=movie',
+        title: 'Romance',
+        description: 'Amor e sentimentos',
+        mainItem: false,
+      },
+    ],
+  },
+  {
+    categoryTitle: 'Em Alta',
+    categoryItems: [
+      {
+        href: '/home',
+        title: 'Em Alta',
+        description: 'Os mais assistidos agora',
+        mainItem: true,
+      },
+    ],
+  },
+  {
+    categoryTitle: 'Minha Lista',
+    categoryItems: [
+      {
+        href: '/home',
+        title: 'Minha Lista',
+        description: 'Conteúdo salvo por você',
+        mainItem: true,
+      },
+    ],
+  },
 ]

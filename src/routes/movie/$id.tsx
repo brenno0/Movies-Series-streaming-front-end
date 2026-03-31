@@ -43,9 +43,8 @@ export function Movie() {
     movieId: Number(id),
   })
 
-  const { data: creditsData, isLoading: isFetchingCredits } =
+  const { data: creditsData } =
     useGetMovieCredits({ options, movieId: id })
-  console.log('creditsData', creditsData)
 
   const recommendedMovies = recommendedMoviesData?.results.map((movie) => {
     return {
@@ -66,145 +65,145 @@ export function Movie() {
 
   if (isMovieLoading) {
     return (
-      <>
-        <Skeleton
-          data-testid="skeleton"
-          className="w-9/10 h-100 mt-30 mx-auto rounded-2xl"
-        />
-        <div className="flex">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <Skeleton
-              data-testid="skeleton"
-              key={`key-${index}`}
-              className="w-1/5 gap-2 h-100 mt-30 mx-auto rounded-2xl"
-            />
+      <div className="px-8 md:px-12">
+        <Skeleton data-testid="skeleton" className="w-full h-[65vh] rounded-none" />
+        <div className="flex gap-3 mt-10">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <Skeleton data-testid="skeleton" key={`key-${index}`} className="flex-1 h-56 rounded-xl" />
           ))}
         </div>
-      </>
+      </div>
     )
   }
 
   if (isMovieError || !movie) {
-    return <p>Erro ao carregar dados do filme.</p>
+    return (
+      <div className="w-full h-[60vh] flex items-center justify-center">
+        <p className="text-white/40 text-sm">Erro ao carregar dados do filme.</p>
+      </div>
+    )
   }
 
   return (
     <div>
-      <div className="rounded-2xl h-[55vh] relative overflow-hidden transition-all duration-300 ease-out">
+      {/* Hero — full bleed, no rounded corners */}
+      <div className="h-[65vh] relative overflow-hidden">
         <img
           src={backdropImage}
           alt={movie.title}
-          className="object-cover object-center absolute inset-0 w-full "
+          className="object-cover object-center absolute inset-0 w-full h-full"
         />
+        {/* Full gradient overlay fading into page bg */}
         <div
-          className="absolute bottom-0 left-0 right-0 h-32"
+          className="absolute inset-0"
           style={{
-            background:
-              'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%)',
+            background: 'linear-gradient(to top, oklch(9% 0 0) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.2) 100%)',
           }}
         />
-        <div className="absolute inset-0 bg-black/30 flex flex-col justify-start py-8 px-4 transition-opacity duration-300">
-          <Link to="/">
-            <ArrowLeft color="oklch(54.6% 0.245 262.881)" />
+        <div className="absolute inset-0 flex flex-col justify-between py-8 px-8 md:px-12">
+          <Link to="/" className="flex items-center gap-2 text-white/50 hover:text-white transition-colors w-fit">
+            <ArrowLeft className="size-4" />
+            <span className="text-sm">Voltar</span>
           </Link>
-          <div className=" h-full flex flex-col justify-end ">
-            <p className="font-bold text-4xl mt-5 md:text-5xl">{movie.title}</p>
-            <div className="w-full flex items-center my-6 gap-1">
-              <div className="h-5 w-15 bg-primary py-4 flex justify-center items-center font-bold mr-2 rounded-[8px]">
-                IMDB
-              </div>
-              <p className="font-bold text-white">
-                {movie.vote_average.toFixed(2)}
-              </p>
-              <div className="border-0.5 my-1 border-l mx-2 border-primary h-5"></div>
-              <p className="font-bold text-white">
-                {moment(movie.release_date).year()}
-              </p>
-            </div>
-            <div className="mt-2 mx-2 flex w-full gap-2">
-              {movie.genres.map((genre) => (
-                <div key={genre.id} className="text-zinc-300">
-                  {genre.name}
-                </div>
+
+          <div className="pb-2">
+            <p className="hero-title text-5xl md:text-7xl text-white mb-4">{movie.title}</p>
+
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-xs font-medium text-white/50 border border-white/20 px-2 py-0.5 rounded">
+                IMDB {movie.vote_average.toFixed(1)}
+              </span>
+              <span className="text-white/30 text-xs">·</span>
+              <span className="text-white/50 text-sm">{moment(movie.release_date).year()}</span>
+              {movie.genres.slice(0, 3).map((genre) => (
+                <span key={genre.id} className="text-white/30 text-xs">·</span>
+              ))}
+              {movie.genres.slice(0, 3).map((genre, i) => (
+                <span key={genre.id} className="text-white/50 text-sm">{genre.name}{i < Math.min(movie.genres.length, 3) - 1 ? '' : ''}</span>
               ))}
             </div>
 
-            <div className="mt-4">
+            <div className="flex items-center gap-3 mt-5">
               <ModalComponent
                 className="!z-[99999999999] min-w-[90vw] min-h-[90vh]"
                 modalTitle={movie.title}
                 modalBodyTemplate={
-                  <MovieModalContent
-                    movieTitle={movie.title}
-                    movieURL={movieUrl}
-                  />
+                  <MovieModalContent movieTitle={movie.title} movieURL={movieUrl} />
                 }
               >
                 <Button
                   variant="default"
                   size="lg"
-                  className="h-10 w-50 text-lg !rounded-[8px] bg-primary text-white hover:bg-blue-800 cursor-pointer"
+                  className="h-10 px-6 bg-white text-black hover:bg-white/90 cursor-pointer font-medium text-sm rounded-md"
                 >
-                  <PlayCircle strokeWidth={1} className="size-lg" />
+                  <PlayCircle className="size-4" />
                   Assistir
                 </Button>
               </ModalComponent>
               <Button
                 variant="outline"
                 size="lg"
-                className="ml-10 h-10 text-lg w-50 mt-3  !rounded-[8px]  font-bold text-white  bg-transparent border-white hover:border-white/70 hover:text-white/70 hover:bg-transparent cursor-pointer"
+                className="h-10 px-6 font-medium text-sm text-white bg-transparent border-white/30 hover:border-white/60 hover:bg-white/5 hover:text-white cursor-pointer rounded-md"
               >
-                <Bookmark strokeWidth={1} className="size-lg" />
-                Adicionar a Lista
+                <Bookmark className="size-4" />
+                Adicionar à Lista
               </Button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="mx-4 mt-5 mb-10">
-        <div className="px-4 mb-15">
-          <p className="text-2xl mb-6 font-bold mt-6">Sinopse</p>
-          <p className="my-8 text-zinc-300">{movie.overview}</p>
+      {/* Content */}
+      <div className="px-8 md:px-12 mt-10 mb-16 space-y-12">
+        {/* Sinopse */}
+        <div>
+          <span className="section-label block mb-2">Sobre o filme</span>
+          <p className="text-lg font-semibold text-white mb-4">Sinopse</p>
+          <p className="text-white/55 leading-relaxed max-w-3xl font-light">{movie.overview}</p>
         </div>
-        <div className="px-4 mb-30">
-          <p className="text-2xl mb-6 font-bold mt-6">Elenco</p>
-          <div className="flex gap-6">
-            <CarouselComponent<CastMember>
-              hasArrows={false}
-              items={creditsData?.cast || []}
-            >
-              {({ item }) => (
-                <div key={item.id} className="flex items-center gap-4">
+
+        {/* Elenco */}
+        <div>
+          <span className="section-label block mb-2">Quem está no filme</span>
+          <p className="text-lg font-semibold text-white mb-5">Elenco</p>
+          <CarouselComponent<CastMember> hasArrows={false} autoplay={false} items={creditsData?.cast || []}>
+            {({ item }) => (
+              <div key={item.id} className="flex flex-col items-center gap-2 text-center px-1">
+                <div className="w-14 h-14 rounded-full overflow-hidden bg-white/5 flex-shrink-0">
                   <img
-                    className="w-16 h-16 rounded-full object-cover"
+                    className="w-full h-full object-cover"
                     alt={item.name}
                     src={`https://image.tmdb.org/t/p/w500/${item.profile_path}`}
                   />
-                  <div className="flex flex-col">
-                    <p className="font-bold">{item.name}</p>
-                    <p className="text-zinc-500 text-sm">{item.character}</p>
-                  </div>
                 </div>
-              )}
-            </CarouselComponent>
-          </div>
+                <div>
+                  <p className="font-medium text-white text-xs leading-tight">{item.name}</p>
+                  <p className="text-white/35 text-xs mt-0.5 leading-tight">{item.character}</p>
+                </div>
+              </div>
+            )}
+          </CarouselComponent>
         </div>
-        <p className="text-xl mb-6 font-bold mt-6">Filmes semelhantes</p>
-        <CarouselComponent items={recommendedMovies || []}>
-          {({ item, itemIndex, hovered, setHovered }) => (
-            <Card
-              data-testid="recommended-movies-card"
-              index={itemIndex}
-              card={item}
-              handleCardClick={() => navigate({ to: `/movie/${item.id}` })}
-              hovered={hovered}
-              type="six-per-row"
-              isRecommendationPanel={false}
-              setHovered={setHovered}
-            />
-          )}
-        </CarouselComponent>
+
+        {/* Filmes semelhantes */}
+        <div>
+          <span className="section-label block mb-2">Você também pode gostar</span>
+          <p className="text-lg font-semibold text-white mb-5">Filmes Semelhantes</p>
+          <CarouselComponent items={recommendedMovies || []}>
+            {({ item, itemIndex, hovered, setHovered }) => (
+              <Card
+                data-testid="recommended-movies-card"
+                index={itemIndex}
+                card={item}
+                handleCardClick={() => navigate({ to: `/movie/${item.id}` })}
+                hovered={hovered}
+                type="six-per-row"
+                isRecommendationPanel={false}
+                setHovered={setHovered}
+              />
+            )}
+          </CarouselComponent>
+        </div>
       </div>
     </div>
   )

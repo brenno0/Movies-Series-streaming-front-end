@@ -81,6 +81,32 @@ export const useGetSeriesCredits = <TData = ISeriesCreditsResponseDTO>({
   })
 }
 
+export const useGetTopRatedSeries = ({ options }: { options: IOptions }) => {
+  return useQuery<ITMDBSeriesResponseDTO>({
+    queryKey: ['topRatedSeries'],
+    queryFn: async () => {
+      const data = await fetch(
+        `https://api.themoviedb.org/3/tv/top_rated?api_key=d175a4ba78a40605ed9c8b5bb88bc889&language=pt-BR`,
+        options,
+      ).then((res) => res.json())
+      return data
+    },
+  })
+}
+
+export const useGetOnAirSeries = ({ options }: { options: IOptions }) => {
+  return useQuery<ITMDBSeriesResponseDTO>({
+    queryKey: ['onAirSeries'],
+    queryFn: async () => {
+      const data = await fetch(
+        `https://api.themoviedb.org/3/tv/on_the_air?api_key=d175a4ba78a40605ed9c8b5bb88bc889&language=pt-BR`,
+        options,
+      ).then((res) => res.json())
+      return data
+    },
+  })
+}
+
 export const useGetSeriesEpisodesBySeason = <
   TData = ISeriesEpisodesResponseDTO,
 >({

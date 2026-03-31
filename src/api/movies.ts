@@ -75,6 +75,32 @@ export const useGetMovieCredits = <TData = IMovieCreditsResponseDTO>({
   })
 }
 
+export const useGetTopRatedMovies = ({ options }: { options: IOptions }) => {
+  return useQuery<IMDBResponseDTO>({
+    queryKey: ['topRatedMovies'],
+    queryFn: async () => {
+      const data = await fetch(
+        `https://api.themoviedb.org/3/movie/top_rated?api_key=d175a4ba78a40605ed9c8b5bb88bc889&language=pt-BR`,
+        options,
+      ).then((res) => res.json())
+      return data
+    },
+  })
+}
+
+export const useGetNowPlayingMovies = ({ options }: { options: IOptions }) => {
+  return useQuery<IMDBResponseDTO>({
+    queryKey: ['nowPlayingMovies'],
+    queryFn: async () => {
+      const data = await fetch(
+        `https://api.themoviedb.org/3/movie/now_playing?api_key=d175a4ba78a40605ed9c8b5bb88bc889&language=pt-BR`,
+        options,
+      ).then((res) => res.json())
+      return data
+    },
+  })
+}
+
 export const useGetMoviesGenres = <TData = IMDBGenresResponseDTO>({
   options,
   ...queryOptions

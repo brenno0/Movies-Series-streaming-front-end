@@ -10,14 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SeriesIndexRouteImport } from './routes/series/index'
 import { Route as SearchIndexRouteImport } from './routes/search/index'
+import { Route as MoviesIndexRouteImport } from './routes/movies/index'
 import { Route as HomeIndexRouteImport } from './routes/home/index'
+import { Route as GenreIndexRouteImport } from './routes/genre/index'
 import { Route as SeriesIdRouteImport } from './routes/series/$id'
 import { Route as MovieIdRouteImport } from './routes/movie/$id'
+import { Route as AuthSignInIndexRouteImport } from './routes/auth/sign-in/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SeriesIndexRoute = SeriesIndexRouteImport.update({
+  id: '/series/',
+  path: '/series/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchIndexRoute = SearchIndexRouteImport.update({
@@ -25,9 +34,19 @@ const SearchIndexRoute = SearchIndexRouteImport.update({
   path: '/search/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MoviesIndexRoute = MoviesIndexRouteImport.update({
+  id: '/movies/',
+  path: '/movies/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HomeIndexRoute = HomeIndexRouteImport.update({
   id: '/home/',
   path: '/home/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GenreIndexRoute = GenreIndexRouteImport.update({
+  id: '/genre/',
+  path: '/genre/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SeriesIdRoute = SeriesIdRouteImport.update({
@@ -40,43 +59,92 @@ const MovieIdRoute = MovieIdRouteImport.update({
   path: '/movie/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthSignInIndexRoute = AuthSignInIndexRouteImport.update({
+  id: '/auth/sign-in/',
+  path: '/auth/sign-in/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/movie/$id': typeof MovieIdRoute
   '/series/$id': typeof SeriesIdRoute
+  '/genre': typeof GenreIndexRoute
   '/home': typeof HomeIndexRoute
+  '/movies': typeof MoviesIndexRoute
   '/search': typeof SearchIndexRoute
+  '/series': typeof SeriesIndexRoute
+  '/auth/sign-in': typeof AuthSignInIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/movie/$id': typeof MovieIdRoute
   '/series/$id': typeof SeriesIdRoute
+  '/genre': typeof GenreIndexRoute
   '/home': typeof HomeIndexRoute
+  '/movies': typeof MoviesIndexRoute
   '/search': typeof SearchIndexRoute
+  '/series': typeof SeriesIndexRoute
+  '/auth/sign-in': typeof AuthSignInIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/movie/$id': typeof MovieIdRoute
   '/series/$id': typeof SeriesIdRoute
+  '/genre/': typeof GenreIndexRoute
   '/home/': typeof HomeIndexRoute
+  '/movies/': typeof MoviesIndexRoute
   '/search/': typeof SearchIndexRoute
+  '/series/': typeof SeriesIndexRoute
+  '/auth/sign-in/': typeof AuthSignInIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/movie/$id' | '/series/$id' | '/home' | '/search'
+  fullPaths:
+    | '/'
+    | '/movie/$id'
+    | '/series/$id'
+    | '/genre'
+    | '/home'
+    | '/movies'
+    | '/search'
+    | '/series'
+    | '/auth/sign-in'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/movie/$id' | '/series/$id' | '/home' | '/search'
-  id: '__root__' | '/' | '/movie/$id' | '/series/$id' | '/home/' | '/search/'
+  to:
+    | '/'
+    | '/movie/$id'
+    | '/series/$id'
+    | '/genre'
+    | '/home'
+    | '/movies'
+    | '/search'
+    | '/series'
+    | '/auth/sign-in'
+  id:
+    | '__root__'
+    | '/'
+    | '/movie/$id'
+    | '/series/$id'
+    | '/genre/'
+    | '/home/'
+    | '/movies/'
+    | '/search/'
+    | '/series/'
+    | '/auth/sign-in/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   MovieIdRoute: typeof MovieIdRoute
   SeriesIdRoute: typeof SeriesIdRoute
+  GenreIndexRoute: typeof GenreIndexRoute
   HomeIndexRoute: typeof HomeIndexRoute
+  MoviesIndexRoute: typeof MoviesIndexRoute
   SearchIndexRoute: typeof SearchIndexRoute
+  SeriesIndexRoute: typeof SeriesIndexRoute
+  AuthSignInIndexRoute: typeof AuthSignInIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -88,6 +156,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/series/': {
+      id: '/series/'
+      path: '/series'
+      fullPath: '/series'
+      preLoaderRoute: typeof SeriesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/search/': {
       id: '/search/'
       path: '/search'
@@ -95,11 +170,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/movies/': {
+      id: '/movies/'
+      path: '/movies'
+      fullPath: '/movies'
+      preLoaderRoute: typeof MoviesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/home/': {
       id: '/home/'
       path: '/home'
       fullPath: '/home'
       preLoaderRoute: typeof HomeIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/genre/': {
+      id: '/genre/'
+      path: '/genre'
+      fullPath: '/genre'
+      preLoaderRoute: typeof GenreIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/series/$id': {
@@ -116,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MovieIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/sign-in/': {
+      id: '/auth/sign-in/'
+      path: '/auth/sign-in'
+      fullPath: '/auth/sign-in'
+      preLoaderRoute: typeof AuthSignInIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -123,8 +219,12 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   MovieIdRoute: MovieIdRoute,
   SeriesIdRoute: SeriesIdRoute,
+  GenreIndexRoute: GenreIndexRoute,
   HomeIndexRoute: HomeIndexRoute,
+  MoviesIndexRoute: MoviesIndexRoute,
   SearchIndexRoute: SearchIndexRoute,
+  SeriesIndexRoute: SeriesIndexRoute,
+  AuthSignInIndexRoute: AuthSignInIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
