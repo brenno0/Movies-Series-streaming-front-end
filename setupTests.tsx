@@ -5,7 +5,7 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
   const actual = await importOriginal()
 
   return {
-    ...actual,
+    actual,
     useNavigate: vi.fn(),
 
     createFileRoute: vi

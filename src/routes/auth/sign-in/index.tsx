@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { createFileRoute } from '@tanstack/react-router'
@@ -24,7 +25,7 @@ function SignIn() {
     try {
       const { email = '', password = '' } = formData
       await authUser({ data: { email, password } })
-    } catch (err) {
+    } catch (err: any) {
       throw new Error(err.message)
     }
   }
