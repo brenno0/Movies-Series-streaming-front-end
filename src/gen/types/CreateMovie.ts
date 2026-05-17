@@ -11,46 +11,7 @@ export type CreateMovie201 = {
     /**
      * @type string
     */
-    message: string;
-};
-
-/**
- * @description Default Response
-*/
-export type CreateMovie400 = {
-    /**
-     * @type string
-    */
-    message: string;
-    /**
-     * @type string
-    */
-    error: string;
-};
-
-/**
- * @description Default Response
-*/
-export type CreateMovie500 = {
-    /**
-     * @type string
-    */
-    message: string;
-    /**
-     * @type string
-    */
-    error: string;
-};
-
-export type CreateMovieMutationRequest = {
-    /**
-     * @type string
-    */
-    overview: string;
-    /**
-     * @type string
-    */
-    posterPath: string;
+    id: string;
     /**
      * @type string
     */
@@ -59,6 +20,25 @@ export type CreateMovieMutationRequest = {
      * @type number
     */
     tmdbId: number;
+};
+
+export type CreateMovieMutationRequest = {
+    /**
+     * @type string
+    */
+    title: string;
+    /**
+     * @type string
+    */
+    overview: string;
+    /**
+     * @type number
+    */
+    tmdbId: number;
+    /**
+     * @type string
+    */
+    posterPath: string;
     /**
      * @type number
     */
@@ -70,5 +50,5 @@ export type CreateMovieMutationResponse = CreateMovie201;
 export type CreateMovieMutation = {
     Response: CreateMovie201;
     Request: CreateMovieMutationRequest;
-    Errors: CreateMovie400 | CreateMovie500;
+    Errors: any;
 };

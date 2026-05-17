@@ -1,10 +1,10 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Bookmark, PlayCircle } from 'lucide-react'
+import { ArrowLeft, Bookmark, BookmarkCheck, PlayCircle } from 'lucide-react'
 import { CarouselComponent } from '@/components/Carousel'
 import moment from 'moment'
 import { ModalComponent } from '@/components/Modal'
-import { MovieModalContent } from './ui/seriesModal'
+import { SeriesModalContent } from './ui/seriesModal'
 import {
   useGetRecommendedSeries,
   useGetSeriesById,
@@ -23,7 +23,14 @@ import { Card } from '@/components/FocusCards'
 import type { CastMember, IEpisode } from '@/types'
 import { truncateText } from '@/lib/truncateText'
 import { motion } from 'motion/react'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCreateMovie, useCreateWatchlist, useDeleteWatchlist } from '@/gen'
+import { getWatchlistSuspenseQueryOptions } from '@/gen/hooks/useGetWatchlistSuspense'
+import Cookie from 'js-cookie'
+
+const API_BASE = 'http://localhost:3333'
+
 export const Route = createFileRoute('/series/$id')({
   component: Series,
 })
@@ -39,45 +46,142 @@ function Series() {
   }
 
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { id } = Route.useParams()
+  const [isWatchlistLoading, setIsWatchlistLoading] = useState(false)
+  const [selectedSeason, setSelectedSeason] = useState<number>(1)
 
-  // Buscar o filme pelo ID
+  // Stream state
+  const [dubLang, setDubLang] = useState<'pt' | 'en'>(() => (localStorage.getItem('dubLang') as 'pt' | 'en') ?? 'pt')
+  const [seriesDbId, setSeriesDbId] = useState<string | null>(null)
+  const [streamError, setStreamError] = useState<string | null>(null)
+  const [isStreamLoading, setIsStreamLoading] = useState(false)
+  const [isPlayerOpen, setIsPlayerOpen] = useState(false)
+  const [playingEpisode, setPlayingEpisode] = useState<{ season: number; episode: number } | null>(null)
+  const prefetchedRef = useRef(false)
+
+  const streamUrl = seriesDbId && playingEpisode
+    ? `${API_BASE}/stream/series/proxy/${seriesDbId}?season=${playingEpisode.season}&episode=${playingEpisode.episode}&lang=${dubLang}`
+    : null
+
+  const handleLangChange = (l: 'pt' | 'en') => {
+    setDubLang(l)
+    localStorage.setItem('dubLang', l)
+  }
+
+  const { data: watchlistData } = useQuery({
+    ...getWatchlistSuspenseQueryOptions(),
+    enabled: !!Cookie.get('access_token'),
+    retry: false,
+  })
+
+  const watchlistItems = watchlistData?.data ?? []
+  const watchlistItem = watchlistItems.find((item) => item.tmdbId === Number(id))
+  const isInWatchlist = !!watchlistItem
+
+  // TMDB data hooks — must be at top to prevent TDZ
   const {
     data: series,
     isLoading: isSeriesLoading,
     isError: isSeriesError,
   } = useGetSeriesById({ options, seriesId: id })
-  const {
-    data: recommendedSeriesData,
-    isLoading: isFetchingRecommendedMovies,
-  } = useGetRecommendedSeries({ options, seriesId: id })
+  const { data: recommendedSeriesData, isLoading: isFetchingRecommendedMovies } =
+    useGetRecommendedSeries({ options, seriesId: id })
   const { data: creditsData, isLoading: isFetchingCredits } =
     useGetSeriesCredits({ options, seriesId: id })
-  const [selectedSeason, setSelectedSeason] = useState<number | undefined>(1)
-  const [episode, setEpisode] = useState<number | undefined>(1)
-
   const { data: episodesData, isLoading: isFetchingEpisodes } =
     useGetSeriesEpisodesBySeason({
       options,
       seriesId: id,
-      seasonNumber: Number(selectedSeason),
-      enabled: series?.seasons[0].season_number !== undefined,
+      seasonNumber: selectedSeason,
+      enabled: true,
     })
-  const recommendedSeries = recommendedSeriesData?.results.map((series) => {
-    return {
-      title: series.title,
-      image: `https://image.tmdb.org/t/p/w500/${series.poster_path}`,
-      backdropImage: `https://image.tmdb.org/t/p/original/${series.backdrop_path}`,
-      vote_average: series.vote_average,
-      category: 'series' as const,
-      overview: series.overview,
-      genre_ids: series.genre_ids,
-      id: series.id,
-    }
-  })
 
-  // const seriesUrl = `https://multiembed.mov/directstram.php?video_id=${id}&tmdb=1&s=${selectedSeason}&e=${episode}`
-  const seriesUrl = `https://vidsrc.icu/embed/tv/${id}/${selectedSeason}/${episode}`
+  const { mutateAsync: addMovie } = useCreateMovie()
+  const { mutateAsync: addToWatchlist } = useCreateWatchlist()
+  const { mutateAsync: removeFromWatchlist } = useDeleteWatchlist()
+
+  const ensureSeriesInDb = async (): Promise<{ id: string }> => {
+    // TMDB /tv/{id} doesn't include imdb_id — fetch external_ids separately
+    const extRes = await fetch(
+      `https://api.themoviedb.org/3/tv/${id}/external_ids`,
+      options,
+    )
+    const extData = await extRes.json() as { imdb_id?: string }
+    const imdbId = extData.imdb_id ?? undefined
+
+    const res = await fetch(`${API_BASE}/series`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tmdbId: Number(id),
+        imdbId,
+        title: series!.name,
+        overview: series!.overview,
+        posterPath: (series as any).poster_path ?? '',
+        voteAverage: series!.vote_average,
+      }),
+    })
+    if (!res.ok) throw new Error('Failed to register series in DB')
+    return res.json()
+  }
+
+  // Background prefetch: register series in DB so play is faster
+  useEffect(() => {
+    if (!series || prefetchedRef.current) return
+    prefetchedRef.current = true
+
+    const run = async () => {
+      try {
+        const dbSeries = await ensureSeriesInDb()
+        setSeriesDbId(dbSeries.id)
+      } catch {
+        // silently ignore — will retry on play click
+      }
+    }
+    run()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [series])
+
+  const handlePlayEpisode = async (season: number, episodeNumber: number) => {
+    setStreamError(null)
+    setIsStreamLoading(true)
+    setIsPlayerOpen(true)
+    setPlayingEpisode({ season, episode: episodeNumber })
+
+    try {
+      const dbId = seriesDbId ?? (await ensureSeriesInDb()).id
+      if (!seriesDbId) setSeriesDbId(dbId)
+    } catch (err) {
+      setStreamError(err instanceof Error ? err.message : 'Erro ao buscar stream.')
+    } finally {
+      setIsStreamLoading(false)
+    }
+  }
+
+  const handleWatchlistToggle = async () => {
+    if (!series) return
+    setIsWatchlistLoading(true)
+    try {
+      if (isInWatchlist && watchlistItem) {
+        await removeFromWatchlist({ id: watchlistItem.id })
+      } else {
+        const movieResult = await addMovie({
+          data: {
+            tmdbId: Number(id),
+            title: series.name,
+            overview: series.overview,
+            posterPath: (series as any).poster_path ?? '',
+            voteAverage: series.vote_average,
+          },
+        })
+        await addToWatchlist({ data: { movieId: movieResult.data.id } })
+      }
+      queryClient.invalidateQueries({ queryKey: [{ url: '/watchlist' }] })
+    } finally {
+      setIsWatchlistLoading(false)
+    }
+  }
 
   if (isSeriesError || !series) {
     return (
@@ -88,6 +192,20 @@ function Series() {
   }
 
   const backdropImage = `https://image.tmdb.org/t/p/original/${series.backdrop_path}`
+  const recommendedSeries = recommendedSeriesData?.results.map((s) => ({
+    title: s.title,
+    image: `https://image.tmdb.org/t/p/w500/${s.poster_path}`,
+    backdropImage: `https://image.tmdb.org/t/p/original/${s.backdrop_path}`,
+    vote_average: s.vote_average,
+    category: 'series' as const,
+    overview: s.overview,
+    genre_ids: s.genre_ids,
+    id: s.id,
+  }))
+
+  const modalTitle = playingEpisode
+    ? `${series.name} — T${playingEpisode.season}:E${playingEpisode.episode}`
+    : series.name
 
   return (
     <div>
@@ -102,7 +220,33 @@ function Series() {
         </div>
       ) : (
         <div>
-          {/* Hero — full bleed */}
+          {/* Single page-level player modal */}
+          <ModalComponent
+            className="!z-[99999999999] min-w-[90vw] min-h-[90vh]"
+            modalTitle={modalTitle}
+            open={isPlayerOpen}
+            onOpenChange={(open) => {
+              setIsPlayerOpen(open)
+              if (!open) { setStreamError(null); setPlayingEpisode(null); setSeriesDbId(null) }
+            }}
+            modalBodyTemplate={
+              streamError
+                ? (
+                  <div className="flex items-center justify-center bg-black" style={{ minHeight: '90vh' }}>
+                    <p className="text-red-400 text-sm">{streamError}</p>
+                  </div>
+                )
+                : streamUrl && seriesDbId
+                ? <SeriesModalContent streamUrl={streamUrl} seriesTitle={series.name} seriesId={seriesDbId} lang={dubLang} onLangChange={handleLangChange} />
+                : (
+                  <div className="flex items-center justify-center bg-black" style={{ minHeight: '90vh' }}>
+                    <p className="text-white/50 text-sm">Buscando stream…</p>
+                  </div>
+                )
+            }
+          />
+
+          {/* Hero */}
           <div className="h-[65vh] relative overflow-hidden">
             <img
               src={backdropImage}
@@ -142,18 +286,26 @@ function Series() {
                   <Button
                     variant="default"
                     size="lg"
+                    disabled={isStreamLoading}
+                    onClick={() => handlePlayEpisode(selectedSeason, 1)}
                     className="h-10 px-6 bg-white text-black hover:bg-white/90 cursor-pointer font-medium text-sm rounded-md"
                   >
                     <PlayCircle className="size-4" />
-                    Assistir
+                    {isStreamLoading ? 'Carregando...' : 'Assistir'}
                   </Button>
                   <Button
                     variant="outline"
                     size="lg"
-                    className="h-10 px-6 font-medium text-sm text-white bg-transparent border-white/30 hover:border-white/60 hover:bg-white/5 hover:text-white cursor-pointer rounded-md"
+                    disabled={isWatchlistLoading}
+                    onClick={handleWatchlistToggle}
+                    className={`h-10 px-6 font-medium text-sm cursor-pointer rounded-md transition-all ${
+                      isInWatchlist
+                        ? 'text-primary border-primary/50 bg-primary/10 hover:bg-primary/20 hover:border-primary'
+                        : 'text-white bg-transparent border-white/30 hover:border-white/60 hover:bg-white/5 hover:text-white'
+                    }`}
                   >
-                    <Bookmark className="size-4" />
-                    Adicionar à Lista
+                    {isInWatchlist ? <BookmarkCheck className="size-4" /> : <Bookmark className="size-4" />}
+                    {isInWatchlist ? 'Na Minha Lista' : 'Adicionar à Lista'}
                   </Button>
                 </div>
               </div>
@@ -177,11 +329,13 @@ function Series() {
                 {({ item }) => (
                   <div key={item.id} className="flex flex-col items-center gap-2 text-center px-1">
                     <div className="w-14 h-14 rounded-full overflow-hidden bg-white/5 flex-shrink-0">
-                      <img
-                        className="w-full h-full object-cover"
-                        alt={item.name}
-                        src={`https://image.tmdb.org/t/p/w500/${item.profile_path}`}
-                      />
+                      {item.profile_path && (
+                        <img
+                          className="w-full h-full object-cover"
+                          alt={item.name}
+                          src={`https://image.tmdb.org/t/p/w500/${item.profile_path}`}
+                        />
+                      )}
                     </div>
                     <div>
                       <p className="font-medium text-white text-xs leading-tight">{item.name}</p>
@@ -205,7 +359,7 @@ function Series() {
                 </div>
                 <Select
                   onValueChange={(value) => setSelectedSeason(Number(value))}
-                  defaultValue={series.seasons[0].season_number.toString()}
+                  defaultValue={series.seasons[0]?.season_number.toString() ?? '1'}
                 >
                   <SelectTrigger className="w-44 h-9 text-sm rounded-md border-white/15 bg-white/5 text-white/70">
                     <SelectValue placeholder="Temporada" />
@@ -230,55 +384,57 @@ function Series() {
                 ) : (
                   <CarouselComponent<IEpisode> autoplay={false} items={episodesData?.episodes || []}>
                     {({ item }) => (
-                      <ModalComponent
-                        className="!z-[99999999999] min-w-[90vw] min-h-[90vh]"
-                        modalTitle={series.name}
-                        modalBodyTemplate={
-                          <MovieModalContent movieTitle={series.name} seriesUrl={seriesUrl} />
-                        }
+                      <div
+                        className="relative w-full overflow-hidden rounded-xl group cursor-pointer"
+                        onClick={() => handlePlayEpisode(selectedSeason, item.episode_number)}
                       >
-                        <div className="relative w-full overflow-hidden rounded-xl group cursor-pointer">
+                        <motion.div
+                          initial="hidden"
+                          whileHover="visible"
+                          className="relative w-full h-full"
+                        >
+                          <motion.img
+                            alt={item.name}
+                            src={`https://image.tmdb.org/t/p/w500/${item.still_path ?? episodesData?.poster_path}`}
+                            className="w-full h-36 object-cover"
+                            variants={{ hidden: { scale: 1 }, visible: { scale: 1.06 } }}
+                            transition={{ duration: 0.4, ease: 'easeOut' }}
+                          />
                           <motion.div
-                            initial="hidden"
-                            whileHover="visible"
-                            className="relative w-full h-full"
-                            onClick={() => setEpisode(item.episode_number)}
+                            className="absolute inset-0 flex flex-col justify-end p-3"
+                            variants={{
+                              hidden: { backgroundColor: 'rgba(0,0,0,0.35)' },
+                              visible: { backgroundColor: 'rgba(0,0,0,0.72)' },
+                            }}
+                            transition={{ duration: 0.3, ease: 'easeOut' }}
                           >
-                            <motion.img
-                              alt={item.name}
-                              src={`https://image.tmdb.org/t/p/w500/${item.still_path ?? episodesData?.poster_path}`}
-                              className="w-full h-36 object-cover"
-                              variants={{ hidden: { scale: 1 }, visible: { scale: 1.06 } }}
-                              transition={{ duration: 0.4, ease: 'easeOut' }}
-                            />
                             <motion.div
-                              className="absolute inset-0 flex flex-col justify-end p-3"
-                              variants={{
-                                hidden: { backgroundColor: 'rgba(0,0,0,0.35)' },
-                                visible: { backgroundColor: 'rgba(0,0,0,0.72)' },
-                              }}
-                              transition={{ duration: 0.3, ease: 'easeOut' }}
+                              variants={{ hidden: { height: '1.5rem' }, visible: { height: 'auto' } }}
+                              transition={{ duration: 0.35, ease: 'easeOut' }}
+                              className="overflow-hidden"
                             >
-                              <motion.div
-                                variants={{ hidden: { height: '1.5rem' }, visible: { height: 'auto' } }}
-                                transition={{ duration: 0.35, ease: 'easeOut' }}
-                                className="overflow-hidden"
+                              <p className="text-white font-medium text-xs leading-tight">
+                                Ep.{item.episode_number} · {item.name}
+                              </p>
+                              <motion.p
+                                className="text-white/60 text-xs mt-1.5 leading-relaxed"
+                                variants={{ hidden: { opacity: 0, y: 6 }, visible: { opacity: 1, y: 0 } }}
+                                transition={{ duration: 0.3, delay: 0.1, ease: 'easeOut' }}
                               >
-                                <p className="text-white font-medium text-xs leading-tight">
-                                  Ep.{item.episode_number} · {item.name}
-                                </p>
-                                <motion.p
-                                  className="text-white/60 text-xs mt-1.5 leading-relaxed"
-                                  variants={{ hidden: { opacity: 0, y: 6 }, visible: { opacity: 1, y: 0 } }}
-                                  transition={{ duration: 0.3, delay: 0.1, ease: 'easeOut' }}
-                                >
-                                  {truncateText(item.overview, 90)}
-                                </motion.p>
-                              </motion.div>
+                                {truncateText(item.overview, 90)}
+                              </motion.p>
+                            </motion.div>
+                            <motion.div
+                              className="mt-2 flex items-center gap-1"
+                              variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
+                              transition={{ duration: 0.2, delay: 0.15 }}
+                            >
+                              <PlayCircle className="size-3.5 text-white/70" />
+                              <span className="text-white/70 text-xs">Assistir</span>
                             </motion.div>
                           </motion.div>
-                        </div>
-                      </ModalComponent>
+                        </motion.div>
+                      </div>
                     )}
                   </CarouselComponent>
                 )}

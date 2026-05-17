@@ -5,7 +5,7 @@
 
 import fetch from "../lib/kubb-api-client.ts";
 import type { RequestConfig, ResponseErrorConfig, ResponseConfig } from "../lib/kubb-api-client.ts";
-import type { GetUserQueryResponse, GetUser400 } from "../types/GetUser.ts";
+import type { GetUserQueryResponse, GetUser404 } from "../types/GetUser.ts";
 import type { QueryKey, QueryClient, UseSuspenseQueryOptions, UseSuspenseQueryResult } from "@tanstack/react-query";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 
@@ -19,13 +19,13 @@ export type GetUserSuspenseQueryKey = ReturnType<typeof getUserSuspenseQueryKey>
 export async function getUserSuspense(config: Partial<RequestConfig> & { client?: typeof fetch } = {}) {
   const { client: request = fetch, ...requestConfig } = config  
   
-  const res = await request<GetUserQueryResponse, ResponseErrorConfig<GetUser400>, unknown>({ method : "GET", url : `/user`, ... requestConfig })  
+  const res = await request<GetUserQueryResponse, ResponseErrorConfig<GetUser404>, unknown>({ method : "GET", url : `/user`, ... requestConfig })  
   return res
 }
 
 export function getUserSuspenseQueryOptions(config: Partial<RequestConfig> & { client?: typeof fetch } = {}) {
   const queryKey = getUserSuspenseQueryKey()
-  return queryOptions<ResponseConfig<GetUserQueryResponse>, ResponseErrorConfig<GetUser400>, ResponseConfig<GetUserQueryResponse>, typeof queryKey>({
+  return queryOptions<ResponseConfig<GetUserQueryResponse>, ResponseErrorConfig<GetUser404>, ResponseConfig<GetUserQueryResponse>, typeof queryKey>({
  
    queryKey,
    queryFn: async ({ signal }) => {
@@ -40,7 +40,7 @@ export function getUserSuspenseQueryOptions(config: Partial<RequestConfig> & { c
  */
 export function useGetUserSuspense<TData = ResponseConfig<GetUserQueryResponse>, TQueryKey extends QueryKey = GetUserSuspenseQueryKey>(options: 
 {
-  query?: Partial<UseSuspenseQueryOptions<ResponseConfig<GetUserQueryResponse>, ResponseErrorConfig<GetUser400>, TData, TQueryKey>> & { client?: QueryClient },
+  query?: Partial<UseSuspenseQueryOptions<ResponseConfig<GetUserQueryResponse>, ResponseErrorConfig<GetUser404>, TData, TQueryKey>> & { client?: QueryClient },
   client?: Partial<RequestConfig> & { client?: typeof fetch }
 }
  = {}) {
@@ -52,7 +52,7 @@ export function useGetUserSuspense<TData = ResponseConfig<GetUserQueryResponse>,
    ...getUserSuspenseQueryOptions(config),
    queryKey,
    ...queryOptions
-  } as unknown as UseSuspenseQueryOptions, queryClient) as UseSuspenseQueryResult<TData, ResponseErrorConfig<GetUser400>> & { queryKey: TQueryKey }
+  } as unknown as UseSuspenseQueryOptions, queryClient) as UseSuspenseQueryResult<TData, ResponseErrorConfig<GetUser404>> & { queryKey: TQueryKey }
 
   query.queryKey = queryKey as TQueryKey
 

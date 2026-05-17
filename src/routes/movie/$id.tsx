@@ -5,7 +5,7 @@ import {
   useGetRecommendedMovies,
 } from '@/api/movies'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Bookmark, PlayCircle } from 'lucide-react'
+import { ArrowLeft, Bookmark, BookmarkCheck, PlayCircle } from 'lucide-react'
 import { CarouselComponent } from '@/components/Carousel'
 import moment from 'moment'
 import { ModalComponent } from '@/components/Modal'
@@ -13,6 +13,13 @@ import { MovieModalContent } from './ui/movieModal'
 import { Card } from '@/components/FocusCards'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { CastMember } from '@/types'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCreateMovie, useCreateWatchlist, useDeleteWatchlist } from '@/gen'
+import { getWatchlistSuspenseQueryOptions } from '@/gen/hooks/useGetWatchlistSuspense'
+import Cookie from 'js-cookie'
+import { useState, useEffect, useRef } from 'react'
+
+const API_BASE = 'http://localhost:3333'
 
 export const Route = createFileRoute('/movie/$id')({
   component: Movie,
@@ -29,9 +36,23 @@ export function Movie() {
   }
 
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { id } = Route.useParams()
+  const [isWatchlistLoading, setIsWatchlistLoading] = useState(false)
 
-  // Buscar o filme pelo ID
+  const { data: watchlistData } = useQuery({
+    ...getWatchlistSuspenseQueryOptions(),
+    enabled: !!Cookie.get('access_token'),
+    retry: false,
+  })
+
+  const watchlistItems = watchlistData?.data ?? []
+  const watchlistItem = watchlistItems.find(
+    (item) => item.tmdbId === Number(id),
+  )
+  const isInWatchlist = !!watchlistItem
+
+  // Fetch movie data first — needed by ensureMovieInDb and useEffect below
   const {
     data: movie,
     isLoading: isMovieLoading,
@@ -43,8 +64,89 @@ export function Movie() {
     movieId: Number(id),
   })
 
-  const { data: creditsData } =
-    useGetMovieCredits({ options, movieId: id })
+  const { data: creditsData } = useGetMovieCredits({ options, movieId: id })
+
+  const { mutateAsync: addMovie } = useCreateMovie()
+  const { mutateAsync: addToWatchlist } = useCreateWatchlist()
+  const { mutateAsync: removeFromWatchlist } = useDeleteWatchlist()
+  const [dubLang, setDubLang] = useState<'pt' | 'en'>(() => (localStorage.getItem('dubLang') as 'pt' | 'en') ?? 'pt')
+  const [movieDbId, setMovieDbId] = useState<string | null>(null)
+  const [isStreamLoading, setIsStreamLoading] = useState(false)
+  const [isPlayerOpen, setIsPlayerOpen] = useState(false)
+  const [streamError, setStreamError] = useState<string | null>(null)
+  const prefetchedRef = useRef(false)
+
+  const streamUrl = movieDbId ? `${API_BASE}/stream/proxy/${movieDbId}?lang=${dubLang}` : null
+
+  const handleLangChange = (l: 'pt' | 'en') => {
+    setDubLang(l)
+    localStorage.setItem('dubLang', l)
+  }
+
+  const ensureMovieInDb = async () => {
+    const result = await addMovie({
+      data: {
+        tmdbId: Number(id),
+        // @ts-expect-error imdbId added to backend schema but types not yet regenerated
+        imdbId: (movie as any)?.imdb_id ?? undefined,
+        title: movie!.title,
+        overview: movie!.overview,
+        posterPath: (movie as any).poster_path ?? '',
+        voteAverage: movie!.vote_average,
+      },
+    })
+    return result.data
+  }
+
+  // Background prefetch: ensure movie in DB + warm stream cache so clicking play is instant
+  useEffect(() => {
+    if (!movie || prefetchedRef.current) return
+    prefetchedRef.current = true
+
+    const run = async () => {
+      try {
+        const dbMovie = await ensureMovieInDb()
+        setMovieDbId(dbMovie.id)
+        // Fire-and-forget — just warms the backend cache, ignore result
+        fetch(`${API_BASE}/stream/prefetch/${dbMovie.id}?lang=${dubLang}`).catch(() => {})
+      } catch {
+        // Silently ignore — will retry on play click
+      }
+    }
+    run()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [movie])
+
+  const handleWatchlistToggle = async () => {
+    if (!movie) return
+    setIsWatchlistLoading(true)
+    try {
+      if (isInWatchlist && watchlistItem) {
+        await removeFromWatchlist({ id: watchlistItem.id })
+      } else {
+        const dbMovie = await ensureMovieInDb()
+        await addToWatchlist({ data: { movieId: dbMovie.id } })
+      }
+      queryClient.invalidateQueries({ queryKey: [{ url: '/watchlist' }] })
+    } finally {
+      setIsWatchlistLoading(false)
+    }
+  }
+
+  const handlePlay = async () => {
+    if (!movie) return
+    setStreamError(null)
+    setIsStreamLoading(true)
+    setIsPlayerOpen(true)
+    try {
+      const dbId = movieDbId ?? (await ensureMovieInDb()).id
+      if (!movieDbId) setMovieDbId(dbId)
+    } catch (err) {
+      setStreamError(err instanceof Error ? err.message : 'Erro ao buscar stream.')
+    } finally {
+      setIsStreamLoading(false)
+    }
+  }
 
   const recommendedMovies = recommendedMoviesData?.results.map((movie) => {
     return {
@@ -59,17 +161,22 @@ export function Movie() {
     }
   })
 
-  const movieUrl = `https://vidsrc.icu/embed/movie/${movie?.imdb_id ?? ''}`
-  // const movieUrl = ` https://multiembed.mov/?video_id=${movie?.imdb_id ?? ''}`
   const backdropImage = `https://image.tmdb.org/t/p/original/${movie?.backdrop_path}`
 
   if (isMovieLoading) {
     return (
       <div className="px-8 md:px-12">
-        <Skeleton data-testid="skeleton" className="w-full h-[65vh] rounded-none" />
+        <Skeleton
+          data-testid="skeleton"
+          className="w-full h-[65vh] rounded-none"
+        />
         <div className="flex gap-3 mt-10">
           {Array.from({ length: 6 }).map((_, index) => (
-            <Skeleton data-testid="skeleton" key={`key-${index}`} className="flex-1 h-56 rounded-xl" />
+            <Skeleton
+              data-testid="skeleton"
+              key={`key-${index}`}
+              className="flex-1 h-56 rounded-xl"
+            />
           ))}
         </div>
       </div>
@@ -79,7 +186,9 @@ export function Movie() {
   if (isMovieError || !movie) {
     return (
       <div className="w-full h-[60vh] flex items-center justify-center">
-        <p className="text-white/40 text-sm">Erro ao carregar dados do filme.</p>
+        <p className="text-white/40 text-sm">
+          Erro ao carregar dados do filme.
+        </p>
       </div>
     )
   }
@@ -97,29 +206,42 @@ export function Movie() {
         <div
           className="absolute inset-0"
           style={{
-            background: 'linear-gradient(to top, oklch(9% 0 0) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.2) 100%)',
+            background:
+              'linear-gradient(to top, oklch(9% 0 0) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.2) 100%)',
           }}
         />
         <div className="absolute inset-0 flex flex-col justify-between py-8 px-8 md:px-12">
-          <Link to="/" className="flex items-center gap-2 text-white/50 hover:text-white transition-colors w-fit">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-white/50 hover:text-white transition-colors w-fit"
+          >
             <ArrowLeft className="size-4" />
             <span className="text-sm">Voltar</span>
           </Link>
 
           <div className="pb-2">
-            <p className="hero-title text-5xl md:text-7xl text-white mb-4">{movie.title}</p>
+            <p className="hero-title text-5xl md:text-7xl text-white mb-4">
+              {movie.title}
+            </p>
 
             <div className="flex items-center gap-3 mb-4">
               <span className="text-xs font-medium text-white/50 border border-white/20 px-2 py-0.5 rounded">
                 IMDB {movie.vote_average.toFixed(1)}
               </span>
               <span className="text-white/30 text-xs">·</span>
-              <span className="text-white/50 text-sm">{moment(movie.release_date).year()}</span>
+              <span className="text-white/50 text-sm">
+                {moment(movie.release_date).year()}
+              </span>
               {movie.genres.slice(0, 3).map((genre) => (
-                <span key={genre.id} className="text-white/30 text-xs">·</span>
+                <span key={genre.id} className="text-white/30 text-xs">
+                  ·
+                </span>
               ))}
               {movie.genres.slice(0, 3).map((genre, i) => (
-                <span key={genre.id} className="text-white/50 text-sm">{genre.name}{i < Math.min(movie.genres.length, 3) - 1 ? '' : ''}</span>
+                <span key={genre.id} className="text-white/50 text-sm">
+                  {genre.name}
+                  {i < Math.min(movie.genres.length, 3) - 1 ? '' : ''}
+                </span>
               ))}
             </div>
 
@@ -127,26 +249,49 @@ export function Movie() {
               <ModalComponent
                 className="!z-[99999999999] min-w-[90vw] min-h-[90vh]"
                 modalTitle={movie.title}
+                open={isPlayerOpen}
+                onOpenChange={(open) => {
+                  setIsPlayerOpen(open)
+                  if (!open) { setMovieDbId(null); setStreamError(null) }
+                }}
                 modalBodyTemplate={
-                  <MovieModalContent movieTitle={movie.title} movieURL={movieUrl} />
+                  streamError
+                    ? <div className="flex items-center justify-center bg-black" style={{ minHeight: '90vh' }}>
+                        <p className="text-red-400 text-sm">{streamError}</p>
+                      </div>
+                    : streamUrl
+                    ? <MovieModalContent movieTitle={movie.title} movieURL={streamUrl} movieId={movieDbId ?? undefined} isVideo lang={dubLang} onLangChange={handleLangChange} />
+                    : <div className="flex items-center justify-center bg-black" style={{ minHeight: '90vh' }}>
+                        <p className="text-white/50 text-sm">Buscando stream…</p>
+                      </div>
                 }
+              />
+              <Button
+                variant="default"
+                size="lg"
+                disabled={isStreamLoading}
+                onClick={handlePlay}
+                className="h-10 px-6 bg-white text-black hover:bg-white/90 cursor-pointer font-medium text-sm rounded-md"
               >
-                <Button
-                  variant="default"
-                  size="lg"
-                  className="h-10 px-6 bg-white text-black hover:bg-white/90 cursor-pointer font-medium text-sm rounded-md"
-                >
-                  <PlayCircle className="size-4" />
-                  Assistir
-                </Button>
-              </ModalComponent>
+                <PlayCircle className="size-4" />
+                {isStreamLoading ? 'Carregando...' : 'Assistir'}
+              </Button>
               <Button
                 variant="outline"
                 size="lg"
-                className="h-10 px-6 font-medium text-sm text-white bg-transparent border-white/30 hover:border-white/60 hover:bg-white/5 hover:text-white cursor-pointer rounded-md"
+                disabled={isWatchlistLoading}
+                onClick={handleWatchlistToggle}
+                className={`h-10 px-6 font-medium text-sm cursor-pointer rounded-md transition-all ${isInWatchlist
+                    ? 'text-primary border-primary/50 bg-primary/10 hover:bg-primary/20 hover:border-primary'
+                    : 'text-white bg-transparent border-white/30 hover:border-white/60 hover:bg-white/5 hover:text-white'
+                  }`}
               >
-                <Bookmark className="size-4" />
-                Adicionar à Lista
+                {isInWatchlist ? (
+                  <BookmarkCheck className="size-4" />
+                ) : (
+                  <Bookmark className="size-4" />
+                )}
+                {isInWatchlist ? 'Na Minha Lista' : 'Adicionar à Lista'}
               </Button>
             </div>
           </div>
@@ -159,26 +304,41 @@ export function Movie() {
         <div>
           <span className="section-label block mb-2">Sobre o filme</span>
           <p className="text-lg font-semibold text-white mb-4">Sinopse</p>
-          <p className="text-white/55 leading-relaxed max-w-3xl font-light">{movie.overview}</p>
+          <p className="text-white/55 leading-relaxed max-w-3xl font-light">
+            {movie.overview}
+          </p>
         </div>
 
         {/* Elenco */}
         <div>
           <span className="section-label block mb-2">Quem está no filme</span>
           <p className="text-lg font-semibold text-white mb-5">Elenco</p>
-          <CarouselComponent<CastMember> hasArrows={false} autoplay={false} items={creditsData?.cast || []}>
+          <CarouselComponent<CastMember>
+            hasArrows={false}
+            autoplay={false}
+            items={creditsData?.cast || []}
+          >
             {({ item }) => (
-              <div key={item.id} className="flex flex-col items-center gap-2 text-center px-1">
+              <div
+                key={item.id}
+                className="flex flex-col items-center gap-2 text-center px-1"
+              >
                 <div className="w-14 h-14 rounded-full overflow-hidden bg-white/5 flex-shrink-0">
-                  <img
-                    className="w-full h-full object-cover"
-                    alt={item.name}
-                    src={`https://image.tmdb.org/t/p/w500/${item.profile_path}`}
-                  />
+                  {item.profile_path && (
+                    <img
+                      className="w-full h-full object-cover"
+                      alt={item.name}
+                      src={`https://image.tmdb.org/t/p/w500/${item.profile_path}`}
+                    />
+                  )}
                 </div>
                 <div>
-                  <p className="font-medium text-white text-xs leading-tight">{item.name}</p>
-                  <p className="text-white/35 text-xs mt-0.5 leading-tight">{item.character}</p>
+                  <p className="font-medium text-white text-xs leading-tight">
+                    {item.name}
+                  </p>
+                  <p className="text-white/35 text-xs mt-0.5 leading-tight">
+                    {item.character}
+                  </p>
                 </div>
               </div>
             )}
@@ -187,8 +347,12 @@ export function Movie() {
 
         {/* Filmes semelhantes */}
         <div>
-          <span className="section-label block mb-2">Você também pode gostar</span>
-          <p className="text-lg font-semibold text-white mb-5">Filmes Semelhantes</p>
+          <span className="section-label block mb-2">
+            Você também pode gostar
+          </span>
+          <p className="text-lg font-semibold text-white mb-5">
+            Filmes Semelhantes
+          </p>
           <CarouselComponent items={recommendedMovies || []}>
             {({ item, itemIndex, hovered, setHovered }) => (
               <Card

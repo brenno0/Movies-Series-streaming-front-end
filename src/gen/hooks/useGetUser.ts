@@ -5,7 +5,7 @@
 
 import fetch from "../lib/kubb-api-client.ts";
 import type { RequestConfig, ResponseErrorConfig, ResponseConfig } from "../lib/kubb-api-client.ts";
-import type { GetUserQueryResponse, GetUser400 } from "../types/GetUser.ts";
+import type { GetUserQueryResponse, GetUser404 } from "../types/GetUser.ts";
 import type { QueryKey, QueryClient, QueryObserverOptions, UseQueryResult } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 
@@ -19,13 +19,13 @@ export type GetUserQueryKey = ReturnType<typeof getUserQueryKey>
 export async function getUser(config: Partial<RequestConfig> & { client?: typeof fetch } = {}) {
   const { client: request = fetch, ...requestConfig } = config  
   
-  const res = await request<GetUserQueryResponse, ResponseErrorConfig<GetUser400>, unknown>({ method : "GET", url : `/user`, ... requestConfig })  
+  const res = await request<GetUserQueryResponse, ResponseErrorConfig<GetUser404>, unknown>({ method : "GET", url : `/user`, ... requestConfig })  
   return res
 }
 
 export function getUserQueryOptions(config: Partial<RequestConfig> & { client?: typeof fetch } = {}) {
   const queryKey = getUserQueryKey()
-  return queryOptions<ResponseConfig<GetUserQueryResponse>, ResponseErrorConfig<GetUser400>, ResponseConfig<GetUserQueryResponse>, typeof queryKey>({
+  return queryOptions<ResponseConfig<GetUserQueryResponse>, ResponseErrorConfig<GetUser404>, ResponseConfig<GetUserQueryResponse>, typeof queryKey>({
  
    queryKey,
    queryFn: async ({ signal }) => {
@@ -40,7 +40,7 @@ export function getUserQueryOptions(config: Partial<RequestConfig> & { client?: 
  */
 export function useGetUser<TData = ResponseConfig<GetUserQueryResponse>, TQueryData = ResponseConfig<GetUserQueryResponse>, TQueryKey extends QueryKey = GetUserQueryKey>(options: 
 {
-  query?: Partial<QueryObserverOptions<ResponseConfig<GetUserQueryResponse>, ResponseErrorConfig<GetUser400>, TData, TQueryData, TQueryKey>> & { client?: QueryClient },
+  query?: Partial<QueryObserverOptions<ResponseConfig<GetUserQueryResponse>, ResponseErrorConfig<GetUser404>, TData, TQueryData, TQueryKey>> & { client?: QueryClient },
   client?: Partial<RequestConfig> & { client?: typeof fetch }
 }
  = {}) {
@@ -52,7 +52,7 @@ export function useGetUser<TData = ResponseConfig<GetUserQueryResponse>, TQueryD
    ...getUserQueryOptions(config),
    queryKey,
    ...queryOptions
-  } as unknown as QueryObserverOptions, queryClient) as UseQueryResult<TData, ResponseErrorConfig<GetUser400>> & { queryKey: TQueryKey }
+  } as unknown as QueryObserverOptions, queryClient) as UseQueryResult<TData, ResponseErrorConfig<GetUser404>> & { queryKey: TQueryKey }
 
   query.queryKey = queryKey as TQueryKey
 

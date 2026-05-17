@@ -102,7 +102,7 @@ export const TopNavItems: ITopNavCategories[] = [
     categoryTitle: 'Minha Lista',
     categoryItems: [
       {
-        href: '/home',
+        href: '/watchlist',
         title: 'Minha Lista',
         description: 'Conteúdo salvo por você',
         mainItem: true,

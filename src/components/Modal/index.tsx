@@ -8,15 +8,18 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { type JSX, type ReactNode } from 'react'
-import * as DialogPrimitive from "@radix-ui/react-dialog"
+import * as DialogPrimitive from '@radix-ui/react-dialog'
 
-interface IModalProps extends  React.ComponentProps<typeof DialogPrimitive.Content> {
+interface IModalProps
+  extends React.ComponentProps<typeof DialogPrimitive.Content> {
   modalTitle: string
   modalDescription?: string
-  children: ReactNode
+  children?: ReactNode
   actions?: JSX.Element
   modalBodyTemplate?: JSX.Element
   modalHeadTemplate?: JSX.Element
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 export const ModalComponent = ({
@@ -26,12 +29,14 @@ export const ModalComponent = ({
   modalHeadTemplate,
   children,
   actions,
+  open,
+  onOpenChange,
   ...props
 }: IModalProps) => {
   return (
-    <Dialog>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent {...props} >
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
+      <DialogContent {...props}>
         <DialogHeader>
           {modalHeadTemplate}
           <DialogTitle className="text-3xl font-bold text-center">

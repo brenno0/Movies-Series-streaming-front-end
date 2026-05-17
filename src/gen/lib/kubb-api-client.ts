@@ -51,9 +51,10 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
+    const authPaths = ['/auth/sign-in', '/auth/sign-up']
     if (
       !isAuthenticated() &&
-      globalThis.location.pathname !== '/auth/sign-in'
+      !authPaths.includes(globalThis.location.pathname)
     ) {
       redirectToLogin()
       return Promise.reject(new Error('Usuário não autenticado'))
@@ -76,9 +77,10 @@ apiClient.interceptors.response.use(
     return response
   },
   (error: AxiosError) => {
+    const authPaths = ['/auth/sign-in', '/auth/sign-up']
     if (
       error.response?.status === 401 &&
-      globalThis.location.pathname !== '/auth/sign-in'
+      !authPaths.includes(globalThis.location.pathname)
     ) {
       redirectToLogin()
     }

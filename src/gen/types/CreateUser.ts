@@ -9,10 +9,6 @@
 */
 export type CreateUser201 = {
     /**
-     * @type string, date-time
-    */
-    createdAt: string;
-    /**
      * @type string
     */
     id: string;
@@ -25,9 +21,9 @@ export type CreateUser201 = {
     */
     email: string;
     /**
-     * @type string
+     * @type string, date-time
     */
-    password: string;
+    createdAt: string;
 };
 
 /**

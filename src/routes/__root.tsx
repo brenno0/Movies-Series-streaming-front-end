@@ -2,9 +2,11 @@ import {
   Link,
   Outlet,
   createRootRouteWithContext,
+  redirect,
 } from '@tanstack/react-router'
 
 import type { QueryClient } from '@tanstack/react-query'
+import Cookie from 'js-cookie'
 import { NavigationMenuComponent } from '@/components/TopNav/index.tsx'
 import { TopNavItems } from '@/constants/TopNav/items.ts'
 import { NuqsAdapter } from 'nuqs/adapters/react'
@@ -153,6 +155,18 @@ function Footer() {
 }
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
+  beforeLoad: ({ location }) => {
+    const token = Cookie.get('access_token')
+    const isAuthPage = location.pathname.startsWith('/auth/')
+
+    if (!token && !isAuthPage) {
+      throw redirect({ to: '/auth/sign-in' })
+    }
+
+    if (token && isAuthPage) {
+      throw redirect({ to: '/home' })
+    }
+  },
   component: () => (
     <NuqsAdapter>
       <header className="fixed top-0 left-0 right-0 z-[999] w-full" style={{ background: 'linear-gradient(to bottom, oklch(8% 0 0 / 0.95) 0%, oklch(8% 0 0 / 0.7) 70%, transparent 100%)' }}>

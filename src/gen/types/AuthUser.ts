@@ -17,7 +17,7 @@ export type AuthUser200 = {
 /**
  * @description Default Response
 */
-export type AuthUser400 = {
+export type AuthUser401 = {
     /**
      * @type string
     */
@@ -44,5 +44,5 @@ export type AuthUserMutationResponse = AuthUser200;
 export type AuthUserMutation = {
     Response: AuthUser200;
     Request: AuthUserMutationRequest;
-    Errors: AuthUser400;
+    Errors: AuthUser401;
 };

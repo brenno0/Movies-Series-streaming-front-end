@@ -5,7 +5,7 @@
 
 import fetch from "../lib/kubb-api-client.ts";
 import type { RequestConfig, ResponseConfig, ResponseErrorConfig } from "../lib/kubb-api-client.ts";
-import type { CreateMovieMutationRequest, CreateMovieMutationResponse, CreateMovie400, CreateMovie500 } from "../types/CreateMovie.ts";
+import type { CreateMovieMutationRequest, CreateMovieMutationResponse } from "../types/CreateMovie.ts";
 import type { UseMutationOptions, UseMutationResult, QueryClient } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
 
@@ -21,13 +21,13 @@ export async function createMovie(data: CreateMovieMutationRequest, config: Part
   
   const requestData = data  
   
-  const res = await request<CreateMovieMutationResponse, ResponseErrorConfig<CreateMovie400 | CreateMovie500>, CreateMovieMutationRequest>({ method : "POST", url : `/movies`, data : requestData, ... requestConfig })  
+  const res = await request<CreateMovieMutationResponse, ResponseErrorConfig<Error>, CreateMovieMutationRequest>({ method : "POST", url : `/movies`, data : requestData, ... requestConfig })  
   return res
 }
 
 export function createMovieMutationOptions(config: Partial<RequestConfig<CreateMovieMutationRequest>> & { client?: typeof fetch } = {}) {
   const mutationKey = createMovieMutationKey()
-  return mutationOptions<ResponseConfig<CreateMovieMutationResponse>, ResponseErrorConfig<CreateMovie400 | CreateMovie500>, {data: CreateMovieMutationRequest}, typeof mutationKey>({
+  return mutationOptions<ResponseConfig<CreateMovieMutationResponse>, ResponseErrorConfig<Error>, {data: CreateMovieMutationRequest}, typeof mutationKey>({
     mutationKey,
     mutationFn: async({ data }) => {
       return createMovie(data, config)
@@ -40,7 +40,7 @@ export function createMovieMutationOptions(config: Partial<RequestConfig<CreateM
  */
 export function useCreateMovie<TContext>(options: 
 {
-  mutation?: UseMutationOptions<ResponseConfig<CreateMovieMutationResponse>, ResponseErrorConfig<CreateMovie400 | CreateMovie500>, {data: CreateMovieMutationRequest}, TContext> & { client?: QueryClient },
+  mutation?: UseMutationOptions<ResponseConfig<CreateMovieMutationResponse>, ResponseErrorConfig<Error>, {data: CreateMovieMutationRequest}, TContext> & { client?: QueryClient },
   client?: Partial<RequestConfig<CreateMovieMutationRequest>> & { client?: typeof fetch },
 }
  = {}) {
@@ -48,11 +48,11 @@ export function useCreateMovie<TContext>(options:
   const { client: queryClient, ...mutationOptions } = mutation;
   const mutationKey = mutationOptions.mutationKey ?? createMovieMutationKey()
 
-  const baseOptions = createMovieMutationOptions(config) as UseMutationOptions<ResponseConfig<CreateMovieMutationResponse>, ResponseErrorConfig<CreateMovie400 | CreateMovie500>, {data: CreateMovieMutationRequest}, TContext>
+  const baseOptions = createMovieMutationOptions(config) as UseMutationOptions<ResponseConfig<CreateMovieMutationResponse>, ResponseErrorConfig<Error>, {data: CreateMovieMutationRequest}, TContext>
 
-  return useMutation<ResponseConfig<CreateMovieMutationResponse>, ResponseErrorConfig<CreateMovie400 | CreateMovie500>, {data: CreateMovieMutationRequest}, TContext>({
+  return useMutation<ResponseConfig<CreateMovieMutationResponse>, ResponseErrorConfig<Error>, {data: CreateMovieMutationRequest}, TContext>({
     ...baseOptions,
     mutationKey,
     ...mutationOptions,
-  }, queryClient) as UseMutationResult<ResponseConfig<CreateMovieMutationResponse>, ResponseErrorConfig<CreateMovie400 | CreateMovie500>, {data: CreateMovieMutationRequest}, TContext>
+  }, queryClient) as UseMutationResult<ResponseConfig<CreateMovieMutationResponse>, ResponseErrorConfig<Error>, {data: CreateMovieMutationRequest}, TContext>
 }

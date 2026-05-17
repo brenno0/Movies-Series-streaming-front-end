@@ -29,7 +29,7 @@ export type GetUser200 = {
 /**
  * @description Default Response
 */
-export type GetUser400 = {
+export type GetUser404 = {
     /**
      * @type string
     */
@@ -44,5 +44,5 @@ export type GetUserQueryResponse = GetUser200;
 
 export type GetUserQuery = {
     Response: GetUser200;
-    Errors: GetUser400;
+    Errors: GetUser404;
 };
