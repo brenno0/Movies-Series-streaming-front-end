@@ -4,7 +4,7 @@ import type {
   ITMDBMultiResponseDTO,
 } from '@/types/requests/filters'
 import type { IMDBResponseDTO, IOptions, ITMDBSeriesResponseDTO } from '@/types'
-import { useQuery, type UseQueryResult } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery, type UseQueryResult } from '@tanstack/react-query'
 
 export const useGetContentBasedOnSearch = <TData = ITMDBMultiResponseDTO>({
   options,
@@ -61,5 +61,51 @@ export const useDiscoverSeries = ({
       )
       return res.json()
     },
+  })
+}
+
+export const useInfiniteDiscoverMovies = ({
+  options,
+  genreId,
+}: {
+  options: IOptions
+  genreId?: number
+}) => {
+  return useInfiniteQuery<IMDBResponseDTO>({
+    queryKey: ['discoverMovies', genreId, 'infinite'],
+    queryFn: async ({ pageParam }) => {
+      const genreParam = genreId ? `&with_genres=${genreId}` : ''
+      const res = await fetch(
+        `https://api.themoviedb.org/3/discover/movie?api_key=d175a4ba78a40605ed9c8b5bb88bc889&language=pt-BR&sort_by=popularity.desc&page=${pageParam}${genreParam}`,
+        options,
+      )
+      return res.json()
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.page < lastPage.total_pages ? lastPage.page + 1 : undefined,
+  })
+}
+
+export const useInfiniteDiscoverSeries = ({
+  options,
+  genreId,
+}: {
+  options: IOptions
+  genreId?: number
+}) => {
+  return useInfiniteQuery<ITMDBSeriesResponseDTO>({
+    queryKey: ['discoverSeries', genreId, 'infinite'],
+    queryFn: async ({ pageParam }) => {
+      const genreParam = genreId ? `&with_genres=${genreId}` : ''
+      const res = await fetch(
+        `https://api.themoviedb.org/3/discover/tv?api_key=d175a4ba78a40605ed9c8b5bb88bc889&language=pt-BR&sort_by=popularity.desc&page=${pageParam}${genreParam}`,
+        options,
+      )
+      return res.json()
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.page < lastPage.total_pages ? lastPage.page + 1 : undefined,
   })
 }

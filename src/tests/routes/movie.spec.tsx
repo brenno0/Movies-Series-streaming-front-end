@@ -5,6 +5,8 @@ import { vi } from 'vitest'
 import * as moviesApi from '@/api/movies'
 import * as router from '@tanstack/react-router'
 import userEvent from '@testing-library/user-event'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import type { ReactNode } from 'react'
 
 // Mocks
 vi.mock('@tanstack/react-router', () => ({
@@ -27,6 +29,28 @@ vi.mock('@/api/movies', () => ({
   useGetRecommendedMovies: vi.fn(),
   useGetMovieCredits: vi.fn(),
 }))
+
+vi.mock('@/gen', () => ({
+  useCreateMovie: vi.fn().mockReturnValue({ mutateAsync: vi.fn() }),
+  useCreateWatchlist: vi.fn().mockReturnValue({ mutateAsync: vi.fn() }),
+  useDeleteWatchlist: vi.fn().mockReturnValue({ mutateAsync: vi.fn() }),
+}))
+
+vi.mock('@/gen/hooks/useGetWatchlistSuspense', () => ({
+  getWatchlistSuspenseQueryOptions: vi.fn().mockReturnValue({
+    queryKey: ['watchlist'],
+    queryFn: () => Promise.resolve({ data: [] }),
+  }),
+}))
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
+  return ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  )
+}
 
 const mockMovie = {
   title: 'Inception',
@@ -84,7 +108,7 @@ describe('Movie page', () => {
     ;(moviesApi.useGetRecommendedMovies as any).mockReturnValue({
       data: mockRecommendations,
     })
-    render(<Movie />)
+    render(<Movie />, { wrapper: createWrapper() })
   })
 
   it('renders correctly', () => {
@@ -113,7 +137,7 @@ describe('Movie page with loading', () => {
       isError: false,
     })
 
-    render(<Movie />)
+    render(<Movie />, { wrapper: createWrapper() })
   })
 
   it('renders the skeleton when movies are loading', async () => {
@@ -134,7 +158,7 @@ describe('Movie page with error', () => {
       isError: true,
     })
 
-    render(<Movie />)
+    render(<Movie />, { wrapper: createWrapper() })
   })
 
   it('renders error message when movie loading fails', async () => {

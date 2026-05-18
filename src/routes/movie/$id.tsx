@@ -70,6 +70,9 @@ export function Movie() {
   const { mutateAsync: addToWatchlist } = useCreateWatchlist()
   const { mutateAsync: removeFromWatchlist } = useDeleteWatchlist()
   const [dubLang, setDubLang] = useState<'pt' | 'en'>(() => (localStorage.getItem('dubLang') as 'pt' | 'en') ?? 'pt')
+  const [streamSource, setStreamSource] = useState<'backend' | 'embed'>(() =>
+    (localStorage.getItem('streamSource') as 'backend' | 'embed') ?? 'backend',
+  )
   const [movieDbId, setMovieDbId] = useState<string | null>(null)
   const [isStreamLoading, setIsStreamLoading] = useState(false)
   const [isPlayerOpen, setIsPlayerOpen] = useState(false)
@@ -77,10 +80,16 @@ export function Movie() {
   const prefetchedRef = useRef(false)
 
   const streamUrl = movieDbId ? `${API_BASE}/stream/proxy/${movieDbId}?lang=${dubLang}` : null
+  const embedUrl = `https://myembed.biz/filme/${id}`
 
   const handleLangChange = (l: 'pt' | 'en') => {
     setDubLang(l)
     localStorage.setItem('dubLang', l)
+  }
+
+  const handleSourceChange = (s: 'backend' | 'embed') => {
+    setStreamSource(s)
+    localStorage.setItem('streamSource', s)
   }
 
   const ensureMovieInDb = async () => {
@@ -136,8 +145,11 @@ export function Movie() {
   const handlePlay = async () => {
     if (!movie) return
     setStreamError(null)
-    setIsStreamLoading(true)
     setIsPlayerOpen(true)
+
+    if (streamSource === 'embed') return
+
+    setIsStreamLoading(true)
     try {
       const dbId = movieDbId ?? (await ensureMovieInDb()).id
       if (!movieDbId) setMovieDbId(dbId)
@@ -245,6 +257,24 @@ export function Movie() {
               ))}
             </div>
 
+            {/* Source picker */}
+            <div className="flex items-center gap-2 mt-4">
+              <span className="text-white/30 text-xs">Fonte:</span>
+              {(['backend', 'embed'] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => handleSourceChange(s)}
+                  className={`px-3 py-1 rounded text-xs font-medium transition-all cursor-pointer ${
+                    streamSource === s
+                      ? 'bg-white/15 text-white border border-white/30'
+                      : 'text-white/40 border border-transparent hover:text-white/60'
+                  }`}
+                >
+                  {s === 'backend' ? 'Meu Servidor' : 'EmbedMovies'}
+                </button>
+              ))}
+            </div>
+
             <div className="flex items-center gap-3 mt-5">
               <ModalComponent
                 className="!z-[99999999999] min-w-[90vw] min-h-[90vh]"
@@ -255,7 +285,15 @@ export function Movie() {
                   if (!open) { setMovieDbId(null); setStreamError(null) }
                 }}
                 modalBodyTemplate={
-                  streamError
+                  streamSource === 'embed'
+                    ? <iframe
+                        title={movie.title}
+                        src={embedUrl}
+                        className="w-full"
+                        style={{ minHeight: '90vh', border: 'none' }}
+                        allowFullScreen
+                      />
+                    : streamError
                     ? <div className="flex items-center justify-center bg-black" style={{ minHeight: '90vh' }}>
                         <p className="text-red-400 text-sm">{streamError}</p>
                       </div>

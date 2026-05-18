@@ -216,6 +216,43 @@ export function HomeComponent() {
             </CarouselComponent>
           </HomeSection>
 
+          {/* ── Gêneros ───────────────────────────── */}
+          <div className="mt-12 px-8 md:px-12">
+            <div className="mb-5">
+              <span className="section-label block mb-1">Explorar</span>
+              <p className="text-lg font-bold text-white">Navegar por Gênero</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { id: 28, name: 'Ação', type: 'movie' },
+                { id: 35, name: 'Comédia', type: 'movie' },
+                { id: 18, name: 'Drama', type: 'series' },
+                { id: 27, name: 'Terror', type: 'movie' },
+                { id: 878, name: 'Sci-Fi', type: 'movie' },
+                { id: 53, name: 'Thriller', type: 'movie' },
+                { id: 16, name: 'Animação', type: 'movie' },
+                { id: 80, name: 'Crime', type: 'series' },
+                { id: 10765, name: 'Fantasia', type: 'series' },
+                { id: 99, name: 'Documentário', type: 'movie' },
+                { id: 10749, name: 'Romance', type: 'movie' },
+                { id: 9648, name: 'Mistério', type: 'movie' },
+              ].map((genre) => (
+                <button
+                  key={genre.id}
+                  onClick={() =>
+                    navigate({
+                      to: '/genre/' as any,
+                      search: { genreId: genre.id, genreName: genre.name, type: genre.type } as any,
+                    })
+                  }
+                  className="px-4 py-1.5 rounded-full text-sm font-medium border border-white/15 text-white/60 hover:text-white hover:border-white/40 transition-all duration-200 cursor-pointer"
+                >
+                  {genre.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* ── Nos Cinemas ───────────────────────── */}
           <HomeSection label="Nos cinemas agora" title="Em Cartaz" viewAllHref="/movies">
             {isLoadingNowPlaying ? <CarouselSkeleton /> : (

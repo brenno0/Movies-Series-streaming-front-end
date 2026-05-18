@@ -40,7 +40,7 @@ export const Card = React.memo(
         onMouseLeave={() => setHovered(null)}
         className={cn(
           'rounded-xl relative bg-neutral-950 overflow-hidden transition-all duration-300 ease-out',
-          type === 'full' ? 'h-180' : 'h-60 md:h-96',
+          type === 'full' ? 'h-[70vh]' : 'aspect-[2/3] w-full',
           hovered !== null && hovered !== index && 'opacity-40 scale-[0.98]',
           hovered === index && !isRecommendationPanel && 'scale-[1.01]',
         )}

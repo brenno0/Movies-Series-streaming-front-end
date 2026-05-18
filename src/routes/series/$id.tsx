@@ -53,6 +53,9 @@ function Series() {
 
   // Stream state
   const [dubLang, setDubLang] = useState<'pt' | 'en'>(() => (localStorage.getItem('dubLang') as 'pt' | 'en') ?? 'pt')
+  const [streamSource, setStreamSource] = useState<'backend' | 'embed'>(() =>
+    (localStorage.getItem('streamSource') as 'backend' | 'embed') ?? 'backend',
+  )
   const [seriesDbId, setSeriesDbId] = useState<string | null>(null)
   const [streamError, setStreamError] = useState<string | null>(null)
   const [isStreamLoading, setIsStreamLoading] = useState(false)
@@ -63,10 +66,18 @@ function Series() {
   const streamUrl = seriesDbId && playingEpisode
     ? `${API_BASE}/stream/series/proxy/${seriesDbId}?season=${playingEpisode.season}&episode=${playingEpisode.episode}&lang=${dubLang}`
     : null
+  const embedUrl = playingEpisode
+    ? `https://myembed.biz/serie/${id}/${playingEpisode.season}/${playingEpisode.episode}`
+    : null
 
   const handleLangChange = (l: 'pt' | 'en') => {
     setDubLang(l)
     localStorage.setItem('dubLang', l)
+  }
+
+  const handleSourceChange = (s: 'backend' | 'embed') => {
+    setStreamSource(s)
+    localStorage.setItem('streamSource', s)
   }
 
   const { data: watchlistData } = useQuery({
@@ -145,10 +156,12 @@ function Series() {
 
   const handlePlayEpisode = async (season: number, episodeNumber: number) => {
     setStreamError(null)
-    setIsStreamLoading(true)
-    setIsPlayerOpen(true)
     setPlayingEpisode({ season, episode: episodeNumber })
+    setIsPlayerOpen(true)
 
+    if (streamSource === 'embed') return
+
+    setIsStreamLoading(true)
     try {
       const dbId = seriesDbId ?? (await ensureSeriesInDb()).id
       if (!seriesDbId) setSeriesDbId(dbId)
@@ -230,7 +243,15 @@ function Series() {
               if (!open) { setStreamError(null); setPlayingEpisode(null); setSeriesDbId(null) }
             }}
             modalBodyTemplate={
-              streamError
+              streamSource === 'embed' && embedUrl
+                ? <iframe
+                    title={modalTitle}
+                    src={embedUrl}
+                    className="w-full"
+                    style={{ minHeight: '90vh', border: 'none' }}
+                    allowFullScreen
+                  />
+                : streamError
                 ? (
                   <div className="flex items-center justify-center bg-black" style={{ minHeight: '90vh' }}>
                     <p className="text-red-400 text-sm">{streamError}</p>
@@ -279,6 +300,24 @@ function Series() {
                     <span key={genre.id} className="text-white/50 text-sm">
                       {genre.name}{i < Math.min(series.genres.length, 3) - 1 ? '' : ''}
                     </span>
+                  ))}
+                </div>
+
+                {/* Source picker */}
+                <div className="flex items-center gap-2 mt-4">
+                  <span className="text-white/30 text-xs">Fonte:</span>
+                  {(['backend', 'embed'] as const).map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => handleSourceChange(s)}
+                      className={`px-3 py-1 rounded text-xs font-medium transition-all cursor-pointer ${
+                        streamSource === s
+                          ? 'bg-white/15 text-white border border-white/30'
+                          : 'text-white/40 border border-transparent hover:text-white/60'
+                      }`}
+                    >
+                      {s === 'backend' ? 'Meu Servidor' : 'EmbedMovies'}
+                    </button>
                   ))}
                 </div>
 
